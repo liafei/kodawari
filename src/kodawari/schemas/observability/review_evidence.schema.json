@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "feature",
+    "planning_dir",
+    "entrypoint",
+    "status",
+    "checks",
+    "issues",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "review.evidence.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "feature": {
+      "type": "string"
+    },
+    "planning_dir": {
+      "type": "string"
+    },
+    "entrypoint": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "WARN",
+        "MISSING",
+        "UNKNOWN"
+      ]
+    },
+    "review_mode": {
+      "type": "string",
+      "enum": ["real_peer_review", "simulated"]
+    },
+    "blocking_reason": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string"
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "checks": {
+      "type": "object",
+      "required": [
+        "self_review_count",
+        "peer_review_count",
+        "must_fix_remaining"
+      ],
+      "properties": {
+        "self_review_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "peer_review_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "must_fix_remaining": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": true
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "file",
+          "rule",
+          "hit",
+          "confidence"
+        ],
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "rule": {
+            "type": "string"
+          },
+          "hit": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

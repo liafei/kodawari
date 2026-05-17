@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "eval.input_lock.v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "created_at",
+    "run_ids",
+    "planning_dirs",
+    "thresholds",
+    "max_history_days"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "eval.input_lock.v1"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "planning_dirs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "thresholds": {
+      "type": "object",
+      "required": [
+        "min_pass_rate",
+        "max_blocked_rate",
+        "max_critical_field_reports"
+      ],
+      "properties": {
+        "min_pass_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_blocked_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "max_critical_field_reports": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "max_history_days": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}

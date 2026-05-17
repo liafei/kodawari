@@ -1,0 +1,191 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tasks",
+    "executability"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "contract_first.task_graph.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "business_outcome": {
+      "type": "string"
+    },
+    "coverage_hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "boundary_debt": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "WARN"
+          ]
+        },
+        "details": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "layers",
+              "tasks"
+            ],
+            "properties": {
+              "file": {
+                "type": "string"
+              },
+              "layers": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "tasks": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              "owners": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "touched_in_feature": {
+                "type": "boolean"
+              },
+              "recommended_split": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "project_layout": {
+      "type": "object"
+    },
+    "project_profile": {
+      "type": "string"
+    },
+    "executability": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "PASS",
+            "FAIL",
+            "WARN"
+          ]
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "task_id",
+          "task_name",
+          "core_files",
+          "layer_owner",
+          "invariants",
+          "test_proof",
+          "executability"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string"
+          },
+          "task_name": {
+            "type": "string"
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "core_files": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "type": "string"
+            }
+          },
+          "layer_owner": {
+            "type": "string",
+            "minLength": 1
+          },
+          "invariants": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "test_proof": {
+            "type": "string"
+          },
+          "coverage_hints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "executability": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PASS",
+                  "FAIL",
+                  "WARN"
+                ]
+              },
+              "issues": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "input_fingerprint",
+    "status",
+    "final_plan",
+    "approval"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "planning.conversation.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "input_fingerprint": {
+      "type": "string"
+    },
+    "task_direction": {
+      "type": "string"
+    },
+    "business_outcome": {
+      "type": "string"
+    },
+    "out_of_scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_of_truth": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_of_truth_canonical": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "path_type": {
+      "type": "string"
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "coverage_hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "archetype": {
+      "type": "string"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "module_boundaries": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "verify_recipes": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "approval_points": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "execution_constraints": {
+      "type": "object"
+    },
+    "confidence": {
+      "type": "string"
+    },
+    "confidence_issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "auto_skipped",
+        "precondition_blocked",
+        "escalation_required",
+        "error"
+      ]
+    },
+    "rounds": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "final_plan": {
+      "type": "object",
+      "required": [
+        "tasks"
+      ],
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "final_review": {
+      "type": "object"
+    },
+    "approval": {
+      "type": "object",
+      "required": [
+        "decision",
+        "reason",
+        "checks"
+      ],
+      "properties": {
+        "decision": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "checks": {
+          "type": "object"
+        }
+      }
+    },
+    "escalation": {
+      "type": [
+        "object",
+        "null"
+      ]
+    }
+  }
+}

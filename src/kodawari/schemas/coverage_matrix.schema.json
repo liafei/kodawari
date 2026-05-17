@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CoverageMatrix",
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["prd_clause", "epic", "priority", "status"],
+        "properties": {
+          "prd_clause": { "type": "string" },
+          "epic": { "type": "string" },
+          "priority": { "type": "string", "enum": ["P0", "P1", "P2"] },
+          "status": { "type": "string", "enum": ["PASS", "PARTIAL", "FAIL"] },
+          "spec_id": { "type": ["string", "null"] },
+          "test_ids": { "type": "array", "items": { "type": "string" } },
+          "blocking_reason": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

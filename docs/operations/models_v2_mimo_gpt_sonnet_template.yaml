@@ -1,0 +1,72 @@
+schema_version: "models.v2"
+
+# Example real-run profile:
+#   planner       -> Mimo OpenAI-compatible chat
+#   plan/impl review -> GPT via Codex CLI login
+#   executor      -> Sonnet via Claude CLI agent execution
+#
+# Required env:
+#   WORKFLOW_MIMO_KEY=<token>
+#
+# Planner context:
+#   By default the workflow does not add a transport-level char cap for Mimo.
+#   Set WORKFLOW_PLANNER_CONTEXT_MAX_CHARS only when you intentionally want a
+#   smaller planning prompt for speed/cost experiments.
+
+transports:
+  mimo_chat:
+    kind: http
+    driver: openai_compatible
+    interface: chat
+    api_format: openai_chat
+    base_url: https://token-plan-sgp.xiaomimimo.com/v1
+    api_key_env: WORKFLOW_MIMO_KEY
+    quota_group: mimo-token-plan
+    provides: [interface.chat]
+
+  codex_local:
+    kind: subprocess
+    driver: codex_cli
+    interface: agent
+    executable: codex
+    quota_group: codex-login
+    provides: [interface.agent, repo.read_file, repo.grep, repo.glob]
+
+  claude_agent:
+    kind: subprocess
+    driver: claude_code
+    interface: agent
+    executable: claude
+    quota_group: claude-login
+    provides: [interface.agent, repo.read_file, repo.grep, repo.glob, repo.write_file]
+
+compatibility:
+  - {models: [mimo-v2.5-pro], transports: [mimo_chat], interfaces: [chat], api_formats: [openai_chat]}
+  - {models: [gpt-5.5], transports: [codex_local], interfaces: [agent]}
+  - {models: [claude-sonnet-4-6], transports: [claude_agent], interfaces: [agent]}
+
+roles:
+  planner:
+    transport: mimo_chat
+    model: mimo-v2.5-pro
+    requires: [interface.chat]
+    on_unavailable: fail
+
+  plan_reviewer:
+    transport: codex_local
+    model: gpt-5.5
+    requires: [interface.agent]
+    on_unavailable: fail
+
+  impl_reviewer:
+    transport: codex_local
+    model: gpt-5.5
+    requires: [interface.agent]
+    on_unavailable: fail
+
+  executor:
+    transport: claude_agent
+    model: claude-sonnet-4-6
+    requires: [interface.agent, repo.write_file]
+    scope_mode: post_diff
+    on_unavailable: fail

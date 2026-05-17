@@ -1,0 +1,273 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "task_id",
+    "why_this_layer",
+    "files_to_change",
+    "invariants",
+    "test_plan",
+    "requires"
+  ],
+  "properties": {
+    "schema_version": {
+      "enum": [
+        "contract_first.task_card.v1",
+        "contract_first.task_card.v1.1"
+      ]
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "task_name": {
+      "type": "string"
+    },
+    "why_this_layer": {
+      "type": "string"
+    },
+    "files_to_change": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string"
+      },
+      "description": "Structural ceiling is 5 to leave room for greenfield bootstrap tasks (schema+model+repo+service+test). Existing-mode runs are still capped at 3 by validate_task_card; greenfield runs may go up to 5. The schema is the outer boundary; the Python validator is the mode-aware gate."
+    },
+    "invariants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "test_plan": {
+      "type": "string"
+    },
+    "forbidden_changes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "new_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Subset of files_to_change that the executor is expected to create (not yet existing). Empty array means all files_to_change are existing modifications."
+    },
+    "verify_cmd": {
+      "type": "string",
+      "description": "Primary verification command declared by planner (e.g. a pytest invocation). Preflight/analyzer consumes this."
+    },
+    "coverage_hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Planner-declared behavioral checks and disambiguating implementation guidance copied from TASK_GRAPH."
+    },
+    "api_contracts": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "provides": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "requires": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "target_symbols": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/symbolRef"
+      }
+    },
+    "read_only_symbols": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/symbolRef"
+      }
+    },
+    "do_not_change": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "behavior_changes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/behaviorChange"
+      }
+    },
+    "allowed_test_mutations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/allowedTestMutation"
+      }
+    },
+    "related_existing_tests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "review_focus": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "freshness": {
+      "$ref": "#/definitions/freshness"
+    }
+  },
+  "definitions": {
+    "symbolRef": {
+      "type": "object",
+      "required": [
+        "file",
+        "kind",
+        "name"
+      ],
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "function",
+            "method",
+            "class"
+          ]
+        },
+        "class": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "behaviorChange": {
+      "type": "object",
+      "required": [
+        "id",
+        "from",
+        "to",
+        "scope"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        }
+      }
+    },
+    "allowedTestMutation": {
+      "type": "object",
+      "required": [
+        "file",
+        "match_kind",
+        "old_pattern",
+        "new_pattern",
+        "behavior_change_id"
+      ],
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "match_kind": {
+          "enum": [
+            "literal_assert",
+            "import_path",
+            "function_call",
+            "decorator"
+          ]
+        },
+        "old_pattern": {
+          "type": "string"
+        },
+        "new_pattern": {
+          "type": "string"
+        },
+        "behavior_change_id": {
+          "type": "string"
+        }
+      }
+    },
+    "freshness": {
+      "type": "object",
+      "properties": {
+        "scouted_at_commit": {
+          "type": "string"
+        },
+        "source_file_hashes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "sha256",
+              "line_count"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string"
+              },
+              "line_count": {
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "target_symbol_fingerprints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "symbol",
+              "signature_hash",
+              "body_hash"
+            ],
+            "properties": {
+              "file": {
+                "type": "string"
+              },
+              "symbol": {
+                "type": "string"
+              },
+              "signature_hash": {
+                "type": "string"
+              },
+              "body_hash": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

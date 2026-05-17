@@ -1,0 +1,110 @@
+{
+  "schema_version": "execution.guard.policy.v1",
+  "policy_name": "default",
+  "deny": [
+    {
+      "pattern": "\\bsudo\\b",
+      "reason": "Sudo commands blocked"
+    },
+    {
+      "pattern": "\\bsu\\s+-c\\b",
+      "reason": "su -c privilege escalation blocked"
+    },
+    {
+      "pattern": "\\bdoas\\b",
+      "reason": "doas privilege escalation blocked"
+    },
+    {
+      "pattern": "\\bpkexec\\b",
+      "reason": "pkexec privilege escalation blocked"
+    },
+    {
+      "pattern": "rm\\s+(-\\w+\\s+)*(--\\s+)?/",
+      "reason": "rm targeting root filesystem blocked"
+    },
+    {
+      "pattern": "rm\\s+--recursive",
+      "reason": "rm --recursive long form blocked"
+    },
+    {
+      "pattern": "git\\s+push\\s+.*(-f\\b|--force)",
+      "reason": "Force push blocked"
+    },
+    {
+      "pattern": "git\\s+reset\\s+--hard\\s+(main|master)",
+      "reason": "Hard reset to protected branch blocked"
+    },
+    {
+      "pattern": "git\\s+branch\\s+-D\\s+(main|master)",
+      "reason": "Delete protected branch blocked"
+    },
+    {
+      "pattern": "git\\s+clean\\s+-[a-z]*[dfx]",
+      "reason": "Destructive workspace clean blocked"
+    },
+    {
+      "pattern": "--no-verify",
+      "reason": "Bypassing git safety hooks blocked"
+    },
+    {
+      "pattern": "(id_rsa|id_ed25519|\\.pem|\\.p12|\\.pfx|\\.jks|\\.keystore|\\.key|\\.env(?:\\.[^\\s|;&>]+)?|\\.npmrc|\\.pypirc|credentials\\.json|token\\.json)(\\s|$|[|;&>])",
+      "reason": "Sensitive credential file mutation blocked"
+    }
+  ],
+  "ask": [
+    {
+      "pattern": "\\brm\\s+-[a-z]*r",
+      "reason": "Recursive delete requires confirmation"
+    },
+    {
+      "pattern": "git\\s+push(?!\\s+.*(-f\\b|--force))",
+      "reason": "Push requires confirmation"
+    },
+    {
+      "pattern": "git\\s+reset\\s+--hard",
+      "reason": "Hard reset requires confirmation"
+    },
+    {
+      "pattern": "git\\s+checkout\\s+--\\s+",
+      "reason": "Discarding file changes requires confirmation"
+    },
+    {
+      "pattern": "git\\s+branch\\s+-[DdmMcC]",
+      "reason": "Deleting, renaming, or copying a git branch requires confirmation"
+    },
+    {
+      "pattern": "chmod\\s+(-\\w+\\s+)*-?[a-z]*[Rr]",
+      "reason": "Recursive permission changes require confirmation"
+    }
+  ],
+  "allow": [
+    {
+      "pattern": "^(\"[^\"]*python(?:\\.exe)?\"|python3?|py)(\\s|$)",
+      "reason": "Python interpreter commands are explicitly safe"
+    },
+    {
+      "pattern": "^pytest(\\s|$)",
+      "reason": "pytest test runner is explicitly safe"
+    },
+    {
+      "pattern": "^python\\s+-m\\s+(pytest|mypy|flake8|ruff|black|isort)(\\s|$)",
+      "reason": "Python quality/test tools are explicitly safe"
+    },
+    {
+      "pattern": "^python(3)?\\s+(--version|-V)(\\s|$)",
+      "reason": "Python version check is read-only and safe"
+    },
+    {
+      "pattern": "^git\\s+(status|diff|log|show|stash\\s+list)(\\s|$)",
+      "reason": "Read-only git inspection commands are explicitly safe"
+    },
+    {
+      "pattern": "^git\\s+branch(?!\\s+-[DdmMcC]|\\s+--delete|\\s+--move|\\s+--copy)(\\s|$)",
+      "reason": "git branch listing is safe; destructive flags -D/-d/-m/-M are excluded"
+    },
+    {
+      "pattern": "^git\\s+tag(?!\\s+-[adfFv]|\\s+--delete|\\s+--annotate|\\s+--force)(\\s|$)",
+      "reason": "git tag listing is safe; annotate/delete/force flags are excluded"
+    }
+  ]
+}

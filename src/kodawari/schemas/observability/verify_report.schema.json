@@ -1,0 +1,144 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "feature",
+    "planning_dir",
+    "entrypoint",
+    "requested_command",
+    "changed_files",
+    "input_confidence",
+    "status",
+    "verify_check"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "verify.report.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "feature": {
+      "type": "string"
+    },
+    "planning_dir": {
+      "type": "string"
+    },
+    "entrypoint": {
+      "type": "string"
+    },
+    "requested_command": {
+      "type": "string"
+    },
+    "requested_command_kind": {
+      "type": "string",
+      "enum": ["file", "inline", "default"]
+    },
+    "changed_files": {
+      "type": "object",
+      "required": ["source", "items", "count"],
+      "properties": {
+        "source": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": true
+    },
+    "input_confidence": {
+      "type": "string",
+      "enum": ["explicit", "curated", "fallback"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PASS", "BLOCKED", "FAIL", "UNKNOWN"]
+    },
+    "verify_scope_mode": {
+      "type": "string"
+    },
+    "surface_results": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "surface_summary": {
+      "type": "object"
+    },
+    "verify_check": {
+      "type": "object",
+      "required": [
+        "status",
+        "passed",
+        "mode",
+        "source",
+        "verify_cmd",
+        "verify_cmd_resolved",
+        "verify_target_source",
+        "verify_targets",
+        "summary",
+        "blocking_reason",
+        "command_executed"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "passed": {
+          "type": "boolean"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "verify_cmd": {
+          "type": "string"
+        },
+        "verify_cmd_resolved": {
+          "type": "string"
+        },
+        "verify_target_source": {
+          "type": "string"
+        },
+        "verify_targets": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "summary": {
+          "type": "string"
+        },
+        "blocking_reason": {
+          "type": "string"
+        },
+        "command_executed": {
+          "type": "boolean"
+        },
+        "returncode": {},
+        "stdout_excerpt": { "type": "string" },
+        "stderr_excerpt": { "type": "string" },
+        "artifacts": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "feature": { "type": "string" },
+        "task_label": { "type": "string" },
+        "instinct_reason": { "type": "string" },
+        "instinct_patterns": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

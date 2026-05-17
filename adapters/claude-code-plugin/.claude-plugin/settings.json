@@ -1,0 +1,5 @@
+{
+  "schema_version": "adapter.settings.v1",
+  "source_policy": "E:\\code_rebuild\\kodawari-ws240\\kodawari\\src\\workflow_sdk\\safety\\policies\\default.yaml",
+  "policy_name": "default"
+}

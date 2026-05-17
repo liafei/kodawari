@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local virtual environments and package build output
+.venv/
+.venv_probe/
+venv/
+build/
+dist/
+*.egg-info/
+
+# Node / web / desktop build output
+node_modules/
+web/node_modules/
+web/dist/
+web/.vite/
+web/src-tauri/target/
+
+# Workflow runtime homes, credentials, logs, and scratch data
+.workflow/
+.workflow*/
+.workflow_runtime/
+.workflow_real_runs/
+.tmp/
+tmp/
+.execution_request.json
+.execution_result.json
+.review_bundle.json
+.review_result.json
+.review_evidence.json
+.verify_report.json
+.gate_result.json
+.status_snapshot.json
+.autopilot_state.json
+.work_all_manifest.json
+.autopilot_rounds.jsonl
+
+# Local AI tool homes and credentials
+.codex/
+.claude/
+auth.json
+.credentials.json
+*.token
+*.secret
+*.pem
+*.key
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+/.meta/

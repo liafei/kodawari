@@ -1,0 +1,198 @@
+﻿"""Tests for local adapter bridge behavior."""
+
+import pytest
+
+from kodawari.autopilot.local_adapter import LocalCodexAdapter, LocalCodexAdapterConfig
+
+
+def test_local_adapter_simulate_mode_implement_and_review() -> None:
+    adapter = LocalCodexAdapter(LocalCodexAdapterConfig(simulate=True))
+    ok, msg = adapter.check_health()
+    assert ok is True
+    assert "simulate" in msg
+
+    impl = adapter.implement(
+        task="T001",
+        context={
+            "pattern_hints": [{"pattern_id": "ranking-rules"}],
+            "attempt": 1,
+        },
+    )
+    assert impl["status"] == "done"
+    assert any("test" in item for item in impl["changes"])
+
+    review = adapter.review(
+        task="T001",
+        context={},
+        changed_files=list(impl["changes"]),
+        review_iteration=0,
+    )
+    assert review["approved"] is True
+    assert review["review_runtime"]["mode"] == "simulate_local"
+    assert review["review_runtime"]["real_requested"] is False
+    assert review["review_runtime"]["fallback_used"] is False
+
+
+def test_local_adapter_can_simulate_failure() -> None:
+    adapter = LocalCodexAdapter(LocalCodexAdapterConfig(simulate=True))
+    result = adapter.implement(
+        task="T002",
+        context={
+            "simulate_failure": True,
+            "simulate_failure_message": "fixture setup failed",
+        },
+    )
+    assert result["status"] == "error"
+    assert "fixture" in result["error"]
+
+
+def test_local_adapter_requires_real_opus_review_when_enabled() -> None:
+    adapter = LocalCodexAdapter(
+        LocalCodexAdapterConfig(
+            simulate=True,
+            require_real_opus_review=True,
+        )
+    )
+    review = adapter.review(
+        task="T003",
+        context={},
+        changed_files=["src/app.py", "tests/test_app.py"],
+        review_iteration=0,
+    )
+    assert review["approved"] is False
+    assert "Real Opus review required" in review["summary"]
+    assert review["source"] == "kodawari.real_opus_required"
+    assert review["review_runtime"]["mode"] == "real_required_failed"
+    assert review["review_runtime"]["real_requested"] is True
+    assert review["review_runtime"]["real_required"] is True
+    assert review["review_runtime"]["fallback_used"] is False
+    assert "WORKFLOW_OPUS_GATEWAY" in review["review_runtime"]["error"]["message"]
+
+
+def test_local_adapter_preflight_blocks_when_real_opus_review_is_unavailable() -> None:
+    adapter = LocalCodexAdapter(
+        LocalCodexAdapterConfig(
+            simulate=True,
+            require_real_opus_review=True,
+        )
+    )
+    preflight = adapter.peer_review_preflight(task="T003", context={})
+
+    assert preflight["ready"] is False
+    assert preflight["blocking_error"] == "WORKFLOW_OPUS_GATEWAY is empty"
+    assert preflight["review"]["review_runtime"]["mode"] == "real_required_failed"
+
+
+def test_local_adapter_can_use_real_opus_review(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _fake_request(*args, **kwargs):  # type: ignore[no-untyped-def]
+        del args, kwargs
+        return (
+            {
+                "approved": True,
+                "summary": "Real opus review approved.",
+                "must_fix": [],
+                "should_fix": [],
+                "blocking_items": [],
+                "severity": "low",
+                "score": 99,
+                "target_score": 95,
+                "min_dimension_score": 80,
+                "gate_recommendation": "PROCEED_TO_GATE",
+                "reviewer": "opus",
+                "source": "kodawari.real_opus_gateway",
+            },
+            "",
+        )
+
+    monkeypatch.setattr("kodawari.autopilot.local_adapter.request_opus_review", _fake_request)
+    adapter = LocalCodexAdapter(
+        LocalCodexAdapterConfig(
+            simulate=True,
+            real_opus_review=True,
+            opus_gateway_base_url="https://example.test",
+            opus_gateway_api_key="test-key",
+        )
+    )
+    review = adapter.review(
+        task="T004",
+        context={"task_id": "T004"},
+        changed_files=["src/app.py", "tests/test_app.py"],
+        review_iteration=1,
+    )
+    assert review["approved"] is True
+    assert review["source"] == "kodawari.real_opus_gateway"
+    assert review["review_runtime"]["mode"] == "real_opus_gateway"
+    assert review["review_runtime"]["real_requested"] is True
+    assert review["review_runtime"]["real_required"] is False
+    assert review["review_runtime"]["fallback_used"] is False
+
+
+def test_local_adapter_marks_simulate_fallback_when_real_gateway_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _fake_request(*args, **kwargs):  # type: ignore[no-untyped-def]
+        del args, kwargs
+        return None, "http 401"
+
+    monkeypatch.setattr("kodawari.autopilot.local_adapter.request_opus_review", _fake_request)
+    adapter = LocalCodexAdapter(
+        LocalCodexAdapterConfig(
+            simulate=True,
+            real_opus_review=True,
+            opus_gateway_base_url="https://example.test",
+            opus_gateway_api_key="bad-key",
+        )
+    )
+    review = adapter.review(
+        task="T005",
+        context={"task_id": "T005"},
+        changed_files=["src/app.py", "tests/test_app.py"],
+        review_iteration=1,
+    )
+
+    assert review["approved"] is True
+    assert review["review_runtime"]["mode"] == "simulate_local"
+    assert review["review_runtime"]["real_requested"] is True
+    assert review["review_runtime"]["real_required"] is False
+    assert review["review_runtime"]["fallback_used"] is True
+    assert review["review_runtime"]["error"]["message"] == "http 401"
+
+
+def test_local_adapter_auto_enables_real_review_when_api_key_is_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("WORKFLOW_OPUS_API_KEY", "test-key")
+    monkeypatch.delenv("WORKFLOW_OPUS_REVIEW_ENABLED", raising=False)
+
+    adapter = LocalCodexAdapter(LocalCodexAdapterConfig(simulate=True))
+
+    assert adapter.config.real_opus_review is True
+    preflight = adapter.peer_review_preflight(task="T006", context={})
+    assert preflight["ready"] is False
+    assert preflight["blocking_error"] == "WORKFLOW_OPUS_GATEWAY is empty"
+
+
+def test_local_adapter_does_not_auto_enable_real_review_when_env_explicitly_disables_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("WORKFLOW_OPUS_API_KEY", "test-key")
+    monkeypatch.setenv("WORKFLOW_OPUS_REVIEW_ENABLED", "0")
+
+    adapter = LocalCodexAdapter(LocalCodexAdapterConfig(simulate=True))
+
+    assert adapter.config.real_opus_review is False
+    preflight = adapter.peer_review_preflight(task="T007", context={})
+    assert preflight["ready"] is True
+
+
+def test_local_adapter_prefers_changed_files_from_task_scope() -> None:
+    adapter = LocalCodexAdapter(LocalCodexAdapterConfig(simulate=True))
+    impl = adapter.implement(
+        task="T010",
+        context={
+            "task_scope": "files_to_change=['app/main.py', 'app/schemas.py', 'tests/test_api.py']; test_plan=run pytest",
+            "attempt": 1,
+        },
+    )
+    assert impl["status"] == "done"
+    assert impl["changes"] == ["app/main.py", "app/schemas.py", "tests/test_api.py"]

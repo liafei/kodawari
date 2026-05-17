@@ -1,0 +1,47 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "kodawari field report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "reported_at",
+    "updated_at",
+    "report_id",
+    "feature",
+    "run_id",
+    "severity",
+    "status",
+    "title",
+    "summary",
+    "component",
+    "impact",
+    "owner",
+    "tags",
+    "evidence_files"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "field.report.v1" },
+    "reported_at": { "type": "string", "minLength": 1 },
+    "updated_at": { "type": "string", "minLength": 1 },
+    "report_id": { "type": "string", "minLength": 1 },
+    "feature": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+    "status": { "type": "string", "enum": ["open", "in_progress", "resolved"] },
+    "title": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 512 },
+    "component": { "type": "string", "maxLength": 512 },
+    "impact": { "type": "string", "maxLength": 512 },
+    "owner": { "type": "string", "maxLength": 512 },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "evidence_files": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

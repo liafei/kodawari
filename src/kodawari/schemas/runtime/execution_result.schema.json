@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "feature",
+    "task",
+    "backend",
+    "status",
+    "changed_files",
+    "stdout_excerpt",
+    "stderr_excerpt",
+    "artifacts",
+    "error_code",
+    "blocking_reason",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "execution.result.v1" },
+    "feature": { "type": "string", "minLength": 1 },
+    "task": { "type": "string", "minLength": 1 },
+    "backend": { "type": "string", "minLength": 1 },
+    "backend_capabilities": { "type": "object" },
+    "backend_capability_truth": { "type": "object" },
+    "status": { "type": "string", "minLength": 1 },
+    "changed_files": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "stdout_excerpt": { "type": "string" },
+    "stderr_excerpt": { "type": "string" },
+    "returncode": { "type": ["integer", "null"] },
+    "artifacts": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "error_code": { "type": "string" },
+    "blocking_reason": { "type": "string" },
+    "summary": { "type": "string" },
+    "implementer_note": {
+      "type": "object",
+      "properties": {
+        "claimed_intent": { "type": "string" },
+        "claimed_invariants_preserved": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "claimed_risks": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

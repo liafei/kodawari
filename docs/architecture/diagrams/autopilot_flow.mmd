@@ -1,0 +1,54 @@
+flowchart TD
+    U["用户 / CI / Operator<br/>canonical 5 动词 或 autopilot / work all"] --> C["CLI 门面层<br/>workflow_sdk.cli.main + parser_registry"]
+    H["历史 workflow-claude 壳层语义"] -. 已吸收到单仓主线 .-> C
+
+    C --> F["命令门面<br/>setup / plan / work / review / release / status<br/>兼容: autopilot / work all / wf-*"]
+    F --> PB["合同优先规划桥<br/>ensure_contract_first_planning()"]
+
+    subgraph P["规划真值层"]
+        P1["PRD_INTAKE.json<br/>需求摄取"]
+        P2["REPO_INVENTORY.json<br/>仓库盘点"]
+        P3["ARCHITECTURE_PLAN.json<br/>架构规划"]
+        P4["TASK_GRAPH.json<br/>任务图"]
+        P5["TASK_CARD_ACTIVE.json / Plans.md<br/>当前活动任务"]
+    end
+
+    PB --> P1 --> P2 --> P3 --> P4 --> P5
+
+    P5 --> R["运行时装配层<br/>autopilot_cmd / work_all_runtime / release_cmd"]
+    R --> E["AutopilotEngine<br/>session + implementation + review mixins"]
+
+    subgraph X["执行与评审主循环"]
+        X1[".execution_request.json<br/>执行请求"]
+        X2["执行后端<br/>codex_cli 为官方主路径<br/>claude_code 为兼容后端"]
+        X3[".execution_result.json<br/>changed_files / runtime truth"]
+        X4[".review_bundle.json / .review_evidence.json<br/>评审证据包"]
+        X5["评审双车道<br/>Codex 自审 + Peer Review<br/>simulated / real_opus"]
+        X6["verify / qa / ship-readiness<br/>多表面验证与发布判断"]
+    end
+
+    E --> X1 --> X2 --> X3 --> X4 --> X5 --> X6
+    X5 -- 需要修复 --> L["修复后进入下一轮 work-loop"]
+    L --> X1
+
+    P3 --> D{"是否需要拍板?"}
+    P4 --> D
+    X6 --> D
+    D -- 是 --> D1["决策桥<br/>.decision_request.json"]
+    D1 --> D2["人工 / 上层系统响应<br/>.decision_response.json"]
+    D2 --> R
+    D -- 否 --> G["Release / Gate 收口"]
+
+    subgraph Q["质量门禁与可观测性"]
+        Q1["gate checker_*<br/>重复实现 / 越层 import / 合同一致性 / ratchet"]
+        Q2[".gate_result.json / GATE.md<br/>PASS 或 BLOCKED"]
+        Q3["status / unified_status<br/>RUNNING / AWAITING_DECISION / AWAITING_ENVIRONMENT / BLOCKED / PASS"]
+        Q4["workflow_chain / stability_report / lane trend<br/>报告与留痕"]
+    end
+
+    G --> Q1 --> Q2 --> Q3 --> Q4
+    P1 --> Q3
+    P3 --> Q3
+    X3 --> Q3
+    X5 --> Q3
+    X6 --> Q3

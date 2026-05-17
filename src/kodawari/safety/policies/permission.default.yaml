@@ -1,0 +1,220 @@
+{
+  "schema_version": "autopilot.permission_policy.v1",
+  "policy_name": "default",
+  "block": [
+    {
+      "tool": "Read",
+      "path_glob": "**/.env*",
+      "reason": "Never read environment secret files"
+    },
+    {
+      "tool": "Grep",
+      "path_glob": "**/.env*",
+      "reason": "Never grep environment secret files"
+    },
+    {
+      "tool": "Glob",
+      "path_glob": "**/.env*",
+      "reason": "Never glob environment secret files"
+    },
+    {
+      "tool": "Read",
+      "path_glob": "**/*.pem",
+      "reason": "Never read private key material"
+    },
+    {
+      "tool": "Grep",
+      "path_glob": "**/*.pem",
+      "reason": "Never grep private key material"
+    },
+    {
+      "tool": "Glob",
+      "path_glob": "**/*.pem",
+      "reason": "Never glob private key material"
+    },
+    {
+      "tool": "Read",
+      "path_glob": "**/*.key",
+      "reason": "Never read private key material"
+    },
+    {
+      "tool": "Grep",
+      "path_glob": "**/*.key",
+      "reason": "Never grep private key material"
+    },
+    {
+      "tool": "Glob",
+      "path_glob": "**/*.key",
+      "reason": "Never glob private key material"
+    },
+    {
+      "tool": "Read",
+      "path_glob": "**/id_rsa*",
+      "reason": "Never read SSH private keys"
+    },
+    {
+      "tool": "Grep",
+      "path_glob": "**/id_rsa*",
+      "reason": "Never grep SSH private keys"
+    },
+    {
+      "tool": "Glob",
+      "path_glob": "**/id_rsa*",
+      "reason": "Never glob SSH private keys"
+    },
+    {
+      "tool": "Read",
+      "path_glob": "**/id_ed25519*",
+      "reason": "Never read SSH private keys"
+    },
+    {
+      "tool": "Grep",
+      "path_glob": "**/id_ed25519*",
+      "reason": "Never grep SSH private keys"
+    },
+    {
+      "tool": "Glob",
+      "path_glob": "**/id_ed25519*",
+      "reason": "Never glob SSH private keys"
+    },
+    {
+      "tool": "Edit",
+      "path_glob": "**/.env*",
+      "reason": "Never edit environment secret files"
+    },
+    {
+      "tool": "Write",
+      "path_glob": "**/.env*",
+      "reason": "Never write environment secret files"
+    },
+    {
+      "tool": "Edit",
+      "path_glob": "**/*.pem",
+      "reason": "Never edit private key material"
+    },
+    {
+      "tool": "Edit",
+      "path_glob": "**/*.key",
+      "reason": "Never edit private key material"
+    },
+    {
+      "tool": "Edit",
+      "path_glob": "**/id_rsa*",
+      "reason": "Never edit SSH private keys"
+    },
+    {
+      "tool": "Edit",
+      "path_glob": "**/id_ed25519*",
+      "reason": "Never edit SSH private keys"
+    },
+    {
+      "tool": "Write",
+      "path_glob": "**/*.pem",
+      "reason": "Never write private key material"
+    },
+    {
+      "tool": "Write",
+      "path_glob": "**/*.key",
+      "reason": "Never write private key material"
+    },
+    {
+      "tool": "Write",
+      "path_glob": "**/id_rsa*",
+      "reason": "Never write SSH private keys"
+    },
+    {
+      "tool": "Write",
+      "path_glob": "**/id_ed25519*",
+      "reason": "Never write SSH private keys"
+    },
+    {
+      "tool": "*",
+      "path_glob": "**/*.p12",
+      "reason": "Never access PKCS#12 certificate stores"
+    },
+    {
+      "tool": "*",
+      "path_glob": "**/*.pfx",
+      "reason": "Never access PFX certificate stores"
+    },
+    {
+      "tool": "*",
+      "path_glob": "**/*.jks",
+      "reason": "Never access Java keystores"
+    },
+    {
+      "tool": "*",
+      "path_glob": "**/*.keystore",
+      "reason": "Never access keystore files"
+    },
+    {
+      "tool": "*",
+      "path_glob": "**/.npmrc",
+      "reason": "Never access npm auth config"
+    },
+    {
+      "tool": "*",
+      "path_glob": "**/.pypirc",
+      "reason": "Never access PyPI auth config"
+    },
+    {
+      "tool": "*",
+      "path_glob": "**/credentials.json",
+      "reason": "Never access GCP/OAuth credential files"
+    },
+    {
+      "tool": "*",
+      "path_glob": "**/token.json",
+      "reason": "Never access OAuth token files"
+    }
+  ],
+  "prompt": [
+    {
+      "tool": "Edit",
+      "path_glob": "**/*.py",
+      "reason": "Python source edits require task-card scope approval"
+    },
+    {
+      "tool": "Edit",
+      "path_glob": "**/*.ts",
+      "reason": "TypeScript source edits require task-card scope approval"
+    },
+    {
+      "tool": "Edit",
+      "path_glob": "**/*.tsx",
+      "reason": "TypeScript source edits require task-card scope approval"
+    },
+    {
+      "tool": "Edit",
+      "path_glob": "**/*.js",
+      "reason": "JavaScript source edits require task-card scope approval"
+    },
+    {
+      "tool": "Write",
+      "path_glob": "**",
+      "reason": "New file writes require scope confirmation"
+    },
+    {
+      "tool": "Bash",
+      "path_glob": "",
+      "reason": "Bash commands are gated by execution_guard; prompt fallback is expected"
+    }
+  ],
+  "allow": [
+    {
+      "tool": "Read",
+      "path_glob": "**",
+      "reason": "Read-only inspection is always safe"
+    },
+    {
+      "tool": "Grep",
+      "path_glob": "**",
+      "reason": "Grep is read-only"
+    },
+    {
+      "tool": "Glob",
+      "path_glob": "**",
+      "reason": "Glob is read-only"
+    }
+  ]
+}

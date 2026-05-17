@@ -1,0 +1,140 @@
+# kodawari User Guide
+
+This guide is for a developer or product engineer using `kodawari` to run a
+small, auditable implementation workflow from a project checkout.
+
+## What It Does
+
+`kodawari` turns a feature request into a bounded workflow:
+
+- read project context and planning artifacts
+- run an executor backend against a scoped task
+- collect review, verify, gate, and release evidence
+- write machine-readable artifacts that `kodawari status` can explain
+
+The main user commands are:
+
+| Command | Use |
+|---|---|
+| `kodawari work-all` | Recommended composite path for a feature workflow |
+| `kodawari autopilot` | Lower-level loop primitive for advanced runs |
+| `kodawari status` | Explain the current workflow state and next action |
+| `kodawari serve` | Start the local web UI bridge |
+
+Run `kodawari --help` for the stable user surface. Run
+`kodawari --help-all` only when you need operator/debug commands.
+
+## When Not To Use It
+
+Do not use `kodawari` for unbounded repository rewrites, destructive
+filesystem operations, credential rotation, or tasks where the executor should
+ignore the declared file scope. For those, write a human migration plan first
+and use the workflow only after scope and rollback are clear.
+
+Before adding a capability or new backend behavior, check
+[CAPABILITY_MAP.md](CAPABILITY_MAP.md). If the capability already exists at the
+orchestrator layer, the work is wiring, not reimplementation.
+
+## Install
+
+For a repo checkout:
+
+```powershell
+cd kodawari
+powershell -ExecutionPolicy Bypass -File .\scripts\bootstrap_kodawari.ps1 -SkipPipUpgrade
+.\scripts\kodawari.ps1 --help
+```
+
+For package users:
+
+```powershell
+pip install "kodawari[serve]"
+kodawari --help
+```
+
+The checkout bootstrap creates a repo-local runtime under
+`.workflow_runtime/local-env/.venv/`. It is local state and should not be
+committed.
+
+## First Run: 30 Second No-Key Smoke
+
+Use this to prove the local state machine and artifact writers work without AI
+credentials:
+
+```powershell
+$env:WORKFLOW_SDK_TEST_MODE = "1"
+$env:WORKFLOW_SELF_REVIEW_BACKEND = "noop_test_only"
+.\.workflow_runtime\local-env\.venv\Scripts\python.exe -m pytest tests\test_autopilot_codex_cli_smoke.py -q
+```
+
+Expected result:
+
+```text
+1 passed
+```
+
+This is not proof that a real executor or peer reviewer ran. It is a fast
+wiring smoke for status and canonical runtime artifacts.
+
+## First Real Workflow
+
+Use the Claude CLI subscription path when you have a logged-in CLI:
+
+```powershell
+claude auth login
+
+.\scripts\kodawari.ps1 work-all `
+  --project-root E:\path\to\target-project `
+  --feature my-feature `
+  --prd E:\path\to\target-project\PRD.md `
+  --planner-route model `
+  --executor-backend claude_code `
+  --reviewer-backend cli `
+  --real-peer-review `
+  --max-cycles 1 `
+  --rollback-on-failure
+```
+
+Then inspect:
+
+```powershell
+.\scripts\kodawari.ps1 status --project-root E:\path\to\target-project --feature my-feature
+```
+
+If auth, backend, review, verify, or gate fails, `status` should point to the
+next action instead of treating a degraded path as success.
+
+## Reading Results
+
+Successful runs usually produce:
+
+- task execution artifacts
+- review evidence
+- verify report
+- gate report
+- final status or release-readiness artifact
+
+Blocked runs are still useful. Inspect `kodawari status`, then look for:
+
+| Block | Meaning |
+|---|---|
+| auth missing or forbidden | log into the CLI or configure the API-key gateway |
+| decision pending | run `kodawari approve` or resolve the requested decision |
+| review fix required | address `must_fix` / `blocking_items` before another cycle |
+| gate blocked | fix static quality or permission-policy violations |
+| verify failed | fix implementation or environment; do not mutate tests unless scoped and authorized |
+
+## Desktop UI
+
+The desktop/Tauri entry uses BYO Python. Install Python 3.11+, install
+`kodawari[serve]`, then launch the desktop app. See
+[DESKTOP_DISTRIBUTION.md](DESKTOP_DISTRIBUTION.md) for binary resolution,
+telemetry, and packaging rules.
+
+## More Detail
+
+- [QUICKSTART.md](QUICKSTART.md) has exact smoke commands.
+- [CAPABILITY_MAP.md](CAPABILITY_MAP.md) is the capability source of truth.
+- [OPERATOR_RUNBOOK.md](OPERATOR_RUNBOOK.md) explains lanes, env vars, real
+  review, degraded modes, and release audit.
+- [../STABILITY.md](../STABILITY.md) defines CLI/API/artifact compatibility.

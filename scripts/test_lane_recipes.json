@@ -1,0 +1,71 @@
+{
+  "always-on": {
+    "summary": "Generic canary happy-path and blocked-path proof, codex_cli smoke, verify surface proof, interaction-state proof, and observability regression smoke.",
+    "default_pytest_args": [
+      "-q"
+    ],
+    "pytest_targets": [
+      "tests/test_generic_runtime_proof.py",
+      "tests/test_autopilot_codex_cli_smoke.py",
+      "tests/test_verify_surface_runtime_proof.py",
+      "tests/test_status_interaction_state.py",
+      "tests/test_autopilot_autodrive_decisions.py",
+      "tests/test_runtime_observability_logging.py"
+    ],
+    "skip_if_env_missing": []
+  },
+  "integration": {
+    "summary": "Real-review standing proof plus operator-style staged CLI smoke for integration environments.",
+    "default_pytest_args": [
+      "-q"
+    ],
+    "pytest_targets": [
+      "tests/test_generic_runtime_real_review.py",
+      "tests/test_cli_real_e2e_smoke.py"
+    ],
+    "skip_if_env_missing": [
+      "WORKFLOW_REVIEWER_API_KEY",
+      "WORKFLOW_REVIEWER_BASE_URL"
+    ]
+  },
+  "real-review-success": {
+    "summary": "Strict real-review success proof; this lane only passes when the live reviewer path returns a true successful review.",
+    "default_pytest_args": [
+      "-q"
+    ],
+    "pytest_targets": [
+      "tests/test_generic_runtime_real_review_success.py"
+    ],
+    "skip_if_env_missing": [
+      "WORKFLOW_REVIEWER_API_KEY",
+      "WORKFLOW_REVIEWER_BASE_URL"
+    ]
+  },
+  "real-review-fail-closed": {
+    "summary": "Fail-closed real-review proof for environments where reviewer availability must block rather than silently pass.",
+    "default_pytest_args": [
+      "-q"
+    ],
+    "pytest_targets": [
+      "tests/test_generic_runtime_real_review.py"
+    ],
+    "skip_if_env_missing": [
+      "WORKFLOW_REVIEWER_API_KEY",
+      "WORKFLOW_REVIEWER_BASE_URL"
+    ]
+  },
+  "models-v2-workall-real": {
+    "summary": "Models v2 work-all route proof for the project-configured openai_tool_use executor and codex reviewer wiring; live non-noop acceptance is run as an operator command.",
+    "default_pytest_args": [
+      "-q"
+    ],
+    "pytest_targets": [
+      "tests/test_cli.py",
+      "tests/test_model_config.py",
+      "tests/test_execution_openai_tool_use.py",
+      "tests/test_autopilot_local_adapter.py",
+      "tests/test_codex_reviewer.py"
+    ],
+    "skip_if_env_missing": []
+  }
+}

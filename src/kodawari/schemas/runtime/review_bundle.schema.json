@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "feature",
+    "task",
+    "task_id",
+    "review_iteration",
+    "changed_files",
+    "invariants",
+    "task_card",
+    "task_scope",
+    "verify_summary",
+    "compliance_summary",
+    "gate_summary",
+    "design_summary",
+    "review_summary",
+    "task_graph_summary",
+    "git_diff",
+    "changed_file_snippets",
+    "existing_review_status"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "review.bundle.v1" },
+    "feature": { "type": "string", "minLength": 1 },
+    "task": { "type": "string", "minLength": 1 },
+    "task_id": { "type": "string", "minLength": 1 },
+    "review_iteration": { "type": "integer", "minimum": 0 },
+    "changed_files": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "invariants": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "task_card": { "type": "object" },
+    "task_scope": { "type": "string" },
+    "contract_excerpt": { "type": "object" },
+    "verify_summary": { "type": "object" },
+    "compliance_summary": { "type": "object" },
+    "gate_summary": { "type": "object" },
+    "design_summary": { "type": "string" },
+    "review_summary": { "type": "string" },
+    "task_graph_summary": { "type": "string" },
+    "git_diff": { "type": "string" },
+    "changed_file_snippets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "snippet"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "snippet": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "existing_review_status": { "type": "string" },
+    "deterministic_findings": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "type": "string" },
+        "out_of_scope_files": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "missing_test_files": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "cross_boundary_files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["file", "modules"],
+            "properties": {
+              "file": { "type": "string", "minLength": 1 },
+              "modules": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "verify_surface_gaps": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "invariant_conflicts": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "additionalProperties": true
+    },
+    "implementer_note": {
+      "type": "object",
+      "properties": {
+        "claimed_intent": { "type": "string" },
+        "claimed_invariants_preserved": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "claimed_risks": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "non_authoritative": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

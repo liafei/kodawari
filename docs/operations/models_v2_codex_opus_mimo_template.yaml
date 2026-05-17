@@ -1,0 +1,81 @@
+schema_version: "models.v2"
+
+# Copy to <project>/.claude/workflow/models.yaml for real runs.
+# Keep secrets in environment variables; do not paste API keys here.
+#
+# Required env for the Mimo executor:
+#   WORKFLOW_MIMO_BASE_URL=https://token-plan-sgp.xiaomimimo.com/v1
+#   WORKFLOW_MIMO_KEY=<token>
+#
+# Required env for the Opus reviewer when using the anthropic-compatible path:
+#   WORKFLOW_IMPL_REVIEWER_BASE_URL=https://token-plan-sgp.xiaomimimo.com/anthropic
+#   WORKFLOW_IMPL_REVIEWER_KEY=<token>
+
+transports:
+  codex_local:
+    kind: subprocess
+    driver: codex_cli
+    interface: agent
+    executable: codex
+    quota_group: codex-login
+    provides: [interface.agent, repo.read_file, repo.grep, repo.glob, repo.write_file]
+
+  opus_anthropic:
+    kind: http
+    driver: anthropic_http
+    interface: chat
+    api_format: anthropic
+    base_url_env: WORKFLOW_IMPL_REVIEWER_BASE_URL
+    api_key_env: WORKFLOW_IMPL_REVIEWER_KEY
+    quota_group: mimo-token-plan
+    provides: [interface.chat]
+
+  mimo_openai:
+    kind: http
+    driver: openai_compatible
+    interface: tool_use
+    api_format: openai_chat
+    base_url_env: WORKFLOW_MIMO_BASE_URL
+    api_key_env: WORKFLOW_MIMO_KEY
+    quota_group: mimo-token-plan
+    provides: [interface.tool_use, repo.read_file, repo.write_file]
+
+compatibility:
+  - {model: "gpt-*", transports: [codex_local], interfaces: [agent]}
+  - {model: "claude-*", transports: [opus_anthropic], interfaces: [chat]}
+  - {model: "mimo-*", transports: [mimo_openai], interfaces: [tool_use], api_formats: [openai_chat]}
+
+roles:
+  planner:
+    transport: codex_local
+    model: gpt-5.5
+    requires: [interface.agent]
+    on_unavailable: fail
+
+  plan_reviewer:
+    transport: codex_local
+    model: gpt-5.5
+    requires: [interface.agent]
+    on_unavailable: fail
+
+  impl_reviewer:
+    transport: opus_anthropic
+    model: claude-opus-4-7
+    requires: [interface.chat]
+    on_unavailable: fail
+
+  executor:
+    transport: mimo_openai
+    model: mimo-v2.5-pro
+    requires: [interface.tool_use, repo.read_file, repo.write_file]
+    scope_mode: inline_guard
+    execution_protocol: exact_str_replace_v1
+    runtime_caps:
+      max_tool_iterations: 30
+      max_token_budget: 200000
+      max_same_tool_calls_per_path: 5
+      max_tool_calls_per_response: 8
+      max_wall_clock_seconds: 1800
+      max_no_progress_iterations: 5
+      max_verify_retries: 2
+    on_unavailable: fail

@@ -1,0 +1,144 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "kodawari automation eval report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "evaluated_at",
+    "status",
+    "thresholds",
+    "summary",
+    "violations",
+    "runs",
+    "input"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "eval.report.v1" },
+    "evaluated_at": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "enum": ["PASS", "BLOCKED"] },
+    "thresholds": {
+      "type": "object",
+      "required": ["min_pass_rate", "max_blocked_rate", "max_critical_field_reports"],
+      "additionalProperties": false,
+      "properties": {
+        "min_pass_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "max_blocked_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "max_critical_field_reports": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "runs_total",
+        "runs_terminal",
+        "runs_pending",
+        "runs_pass",
+        "runs_blocked",
+        "pass_rate",
+        "blocked_rate",
+        "critical_field_reports",
+        "critical_field_reports_threshold",
+        "review_rounds_used_total",
+        "review_rounds_used_avg"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "runs_total": { "type": "integer", "minimum": 0 },
+        "runs_terminal": { "type": "integer", "minimum": 0 },
+        "runs_pending": { "type": "integer", "minimum": 0 },
+        "runs_pass": { "type": "integer", "minimum": 0 },
+        "runs_blocked": { "type": "integer", "minimum": 0 },
+        "pass_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "blocked_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "critical_field_reports": { "type": "integer", "minimum": 0 },
+        "critical_field_reports_threshold": { "type": "integer", "minimum": 0 },
+        "review_rounds_used_total": { "type": "integer", "minimum": 0 },
+        "review_rounds_used_avg": { "type": "number", "minimum": 0.0 }
+      }
+    },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["metric", "expected", "actual"],
+        "additionalProperties": false,
+        "properties": {
+          "metric": { "type": "string", "minLength": 1 },
+          "expected": { "type": "string", "minLength": 1 },
+          "actual": { "type": ["number", "integer"] }
+        }
+      }
+    },
+    "rule_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["candidate_id", "reason", "suggested_action", "evidence"],
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 },
+          "suggested_action": { "type": "string", "minLength": 1 },
+          "evidence": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "run_id",
+          "feature",
+          "status",
+          "captured_at",
+          "metrics",
+          "signals",
+          "critical_field_reports",
+          "critical_report_ids",
+          "snapshot_path"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "run_id": { "type": "string", "minLength": 1 },
+          "feature": { "type": "string", "minLength": 1 },
+          "status": { "type": "string", "minLength": 1 },
+          "captured_at": { "type": "string", "minLength": 1 },
+          "metrics": { "type": "object" },
+          "signals": { "type": "object" },
+          "critical_field_reports": { "type": "integer", "minimum": 0 },
+          "critical_report_ids": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "snapshot_path": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "required": ["run_ids", "planning_dirs", "input_lock", "max_history_days", "warnings"],
+      "additionalProperties": false,
+      "properties": {
+        "run_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "planning_dirs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "input_lock": { "type": ["string", "null"] },
+        "max_history_days": { "type": ["integer", "null"], "minimum": 0 },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

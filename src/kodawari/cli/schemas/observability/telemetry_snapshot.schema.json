@@ -1,0 +1,70 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "kodawari telemetry snapshot",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "captured_at",
+    "feature",
+    "run_id",
+    "status",
+    "metrics",
+    "signals",
+    "source_artifacts",
+    "changed_files"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "telemetry.snapshot.v1" },
+    "captured_at": { "type": "string", "minLength": 1 },
+    "feature": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "minLength": 1 },
+    "metrics": {
+      "type": "object",
+      "required": [
+        "tokens_used",
+        "cycle",
+        "changed_files_count",
+        "error_events_count",
+        "review_rounds_used",
+        "history_events_considered"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tokens_used": { "type": "integer", "minimum": 0 },
+        "cycle": { "type": "integer", "minimum": 0 },
+        "changed_files_count": { "type": "integer", "minimum": 0 },
+        "error_events_count": { "type": "integer", "minimum": 0 },
+        "review_rounds_used": { "type": "integer", "minimum": 0 },
+        "history_events_considered": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "signals": {
+      "type": "object",
+      "required": ["stop_reason", "gate_status", "verify_status", "round_outcome"],
+      "additionalProperties": false,
+      "properties": {
+        "stop_reason": { "type": "string" },
+        "gate_status": { "type": "string" },
+        "verify_status": { "type": "string" },
+        "round_outcome": { "type": "string" }
+      }
+    },
+    "source_artifacts": {
+      "type": "object",
+      "required": ["autopilot_state", "autopilot_rounds", "workflow_chain", "gate_result"],
+      "additionalProperties": false,
+      "properties": {
+        "autopilot_state": { "type": "string", "minLength": 1 },
+        "autopilot_rounds": { "type": "string", "minLength": 1 },
+        "workflow_chain": { "type": "string", "minLength": 1 },
+        "gate_result": { "type": "string", "minLength": 1 }
+      }
+    },
+    "changed_files": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

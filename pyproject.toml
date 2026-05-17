@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kodawari"
+version = "0.1.0"
+description = "Autopilot for autonomous software delivery — PRD to shipped feature via multi-LLM planner + reviewer + executor with strict no-fake-run guarantees."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["autopilot", "agent", "llm", "code-generation", "ai-coding", "contract-first"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Code Generators",
+]
+dependencies = [
+  "jsonschema>=4.18.0",
+]
+authors = [
+  { name = "kodawari contributors" }
+]
+
+[project.scripts]
+kodawari = "kodawari.cli.main:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+# Includes "kodawari" and "code_redline" (vendored — see src/code_redline/VENDORED.md).
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.0",
+  "pytest-random-order>=1.1",
+]
+serve = [
+  "fastapi>=0.110",
+  "uvicorn>=0.27",
+  "pyyaml>=6.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--random-order"]

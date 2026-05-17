@@ -1,0 +1,198 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "planning_mode",
+    "archetype",
+    "capabilities",
+    "recommended_layers",
+    "surfaces",
+    "module_boundaries",
+    "verify_recipes",
+    "approval_points",
+    "execution_constraints",
+    "confidence",
+    "confidence_issues"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "contract_first.architecture_plan.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "feature": {
+      "type": "string"
+    },
+    "planning_mode": {
+      "type": "string",
+      "enum": [
+        "existing",
+        "greenfield"
+      ]
+    },
+    "semantic_source": {
+      "type": "string"
+    },
+    "business_outcome": {
+      "type": "string"
+    },
+    "archetype": {
+      "type": "string"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_of_truth": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_of_truth_canonical": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "path_type": {
+      "type": "string"
+    },
+    "coverage_hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommended_layers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "module_boundaries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "surface",
+          "roots",
+          "layers"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "surface": {
+            "type": "string"
+          },
+          "roots": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "layers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "verify_recipes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "surface",
+          "command",
+          "required"
+        ],
+        "properties": {
+          "surface": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "roots": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "approval_points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "required",
+          "reason"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "execution_constraints": {
+      "type": "object",
+      "required": [
+        "native_executor_required",
+        "review_required",
+        "max_core_files_per_task"
+      ],
+      "properties": {
+        "native_executor_required": {
+          "type": "boolean"
+        },
+        "review_required": {
+          "type": "boolean"
+        },
+        "max_core_files_per_task": {
+          "type": "integer"
+        }
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "low"
+      ]
+    },
+    "confidence_issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

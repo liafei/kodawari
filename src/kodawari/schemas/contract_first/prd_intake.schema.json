@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "business_outcome",
+    "source_of_truth",
+    "source_of_truth_canonical",
+    "path_type",
+    "layers",
+    "coverage_hints",
+    "confidence",
+    "confidence_issues",
+    "out_of_scope"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "contract_first.prd_intake.v1"
+    },
+    "business_outcome": {
+      "type": "string"
+    },
+    "source_of_truth": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_of_truth_canonical": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "path_type": {
+      "type": "string",
+      "enum": [
+        "read",
+        "write",
+        "both"
+      ]
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "route",
+          "service",
+          "repository",
+          "model",
+          "schema",
+          "frontend",
+          "util"
+        ]
+      }
+    },
+    "coverage_hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "low"
+      ]
+    },
+    "confidence_issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "out_of_scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

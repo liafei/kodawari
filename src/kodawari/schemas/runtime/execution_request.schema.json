@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "feature",
+    "task",
+    "backend",
+    "project_root",
+    "planning_dir",
+    "task_id",
+    "requested_action",
+    "review_round",
+    "attempt",
+    "files_to_change",
+    "invariants",
+    "task_card",
+    "task_scope",
+    "verify_cmd"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "execution.request.v1" },
+    "feature": { "type": "string", "minLength": 1 },
+    "task": { "type": "string", "minLength": 1 },
+    "backend": { "type": "string" },
+    "backend_capabilities": { "type": "object" },
+    "backend_capability_truth": { "type": "object" },
+    "executor_command": { "type": "string" },
+    "project_root": { "type": "string", "minLength": 1 },
+    "planning_dir": { "type": "string", "minLength": 1 },
+    "task_id": { "type": "string", "minLength": 1 },
+    "requested_action": { "type": "string", "minLength": 1 },
+    "review_round": { "type": "integer", "minimum": 0 },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "files_to_change": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "invariants": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "task_card": { "type": "object" },
+    "task_scope": { "type": "string" },
+    "verify_cmd": { "type": "string" },
+    "must_fix": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "implementer_note": {
+      "type": "object",
+      "properties": {
+        "claimed_intent": { "type": "string" },
+        "claimed_invariants_preserved": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "claimed_risks": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

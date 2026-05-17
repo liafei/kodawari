@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "approved",
+    "summary",
+    "must_fix",
+    "should_fix",
+    "blocking_items",
+    "severity",
+    "score",
+    "target_score",
+    "min_dimension_score",
+    "gate_recommendation"
+  ],
+  "properties": {
+    "approved": { "type": "boolean" },
+    "summary": { "type": "string", "minLength": 1 },
+    "must_fix": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "should_fix": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "blocking_items": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "low", "medium", "high", "critical"]
+    },
+    "score": { "type": ["number", "null"] },
+    "target_score": { "type": ["number", "null"] },
+    "min_dimension_score": { "type": ["number", "null"] },
+    "gate_recommendation": {
+      "type": "string",
+      "enum": [
+        "PROCEED_TO_GATE",
+        "REVIEW_FIX_REQUIRED",
+        "ESCALATE_TO_HUMAN",
+        "REVIEW_PENDING",
+        "REVIEW_SCOPE_CONFLICT",
+        "APPROVED"
+      ]
+    },
+    "reviewer": { "type": "string" },
+    "source": { "type": "string" },
+    "evidence": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "global_consistency_verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "INSUFFICIENT_CONTEXT"]
+    },
+    "local_implementation_verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL"]
+    },
+    "global_failure_attribution": {
+      "type": "string",
+      "enum": ["this_task", "sibling_tasks", "unknown"],
+      "description": "When global_consistency_verdict=FAIL, where the failure originates. 'this_task' = defect in the diff under review (override approved). 'sibling_tasks' = upstream/downstream tasks not yet implemented (do NOT override). 'unknown' = reviewer could not attribute. Required when global_consistency_verdict=FAIL."
+    },
+    "deterministic_finding_responses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["finding_type", "acknowledged", "assessment"],
+        "properties": {
+          "finding_type": { "type": "string", "minLength": 1 },
+          "acknowledged": { "type": "boolean" },
+          "assessment": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["artifact", "field_path", "reason"],
+        "properties": {
+          "artifact": { "type": "string" },
+          "field_path": { "type": "string" },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

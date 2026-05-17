@@ -1,0 +1,19 @@
+title = "kodawari secret scanning policy"
+
+[allowlist]
+description = "Generated runtime/config homes are intentionally kept outside the tracked source tree."
+paths = [
+  '''^\.secrets\.baseline$''',
+  '''^\.workflow_runtime/''',
+  '''^\.workflow/''',
+  '''^\.workflow_real_runs/''',
+  '''^\.tmp/''',
+  '''^\.venv/''',
+  '''^\.venv_probe/''',
+  '''^web/node_modules/''',
+  '''^web/dist/''',
+  '''^web/src-tauri/target/''',
+  '''^planning/lane_.*\.json$''',
+  '''^planning/pytest_summary_latest\.json$''',
+]
+

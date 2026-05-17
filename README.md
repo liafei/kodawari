@@ -3,6 +3,8 @@
 > *拘り* — the Japanese concept of obsessive attention to detail, the
 > craftsman's refusal to accept anything less than what the work demands.
 
+**中文用户**：see [README.zh-CN.md](README.zh-CN.md).
+
 **kodawari** is an autopilot for autonomous software delivery. You give it a
 PRD, it ships the feature: planner drafts the contract, reviewer audits the
 plan, executor writes the code, and a strict gate refuses to silently pass
@@ -13,6 +15,26 @@ every "verify" actually runs `pytest`, every "peer review" actually calls a
 reviewer model, every "approval" is anchored in a real artifact. There is no
 fallback path that smuggles `passed=true` past a gate when the underlying
 check never ran.
+
+## Why kodawari?
+
+If you've tried other AI coding tools, here's where kodawari sits:
+
+| Tool | Posture | What kodawari does differently |
+|---|---|---|
+| **Claude Code / Codex CLI** | Interactive REPL with one model per turn | Multi-model role separation (planner ≠ reviewer ≠ executor) + contract-first artifact chain. Same chat in 5 sessions ≠ a planned PRD-driven feature. |
+| **Cursor / Windsurf** | IDE-embedded editor with copilot+chat | Headless / scriptable / CI-friendly. No editor lock-in. Audit-trail-first: every step writes a JSON artifact. |
+| **Aider** | Git-aware pair-programmer for incremental edits | Greenfield-first (empty dir → shipped feature), strict verify+review gates that fail closed, planner that can reject its own plan. |
+| **OpenHands / Devin** | General-purpose autonomous agents | Narrower scope (Python project shipping), stricter no-fake-run guarantees, smaller blast radius. Not trying to "be everything"; trying to *finish* one task without lying about it. |
+
+Pick kodawari when you need:
+- A PRD → shipped feature **pipeline** rather than a chat session.
+- Hard guarantees that "verify passed" actually means `pytest` ran and returned 0.
+- Multi-LLM where each role is independently configurable (e.g., cheap planner + premium reviewer + local executor).
+- A CI-friendly autopilot that writes machine-readable artifacts at every step.
+
+If you want a chatty pair-programmer, use one of the others — kodawari is
+opinionated and process-heavy on purpose.
 
 ## Quickstart
 
@@ -138,12 +160,20 @@ scripts/                  # bootstrap + maintenance scripts
 - [docs/QUICKSTART.md](docs/QUICKSTART.md) — first-run walkthrough (30s noop,
   10min Claude subscription, greenfield from empty dir)
 - [docs/USER_GUIDE.md](docs/USER_GUIDE.md) — full operator manual
+- [docs/WRITING_PRD.md](docs/WRITING_PRD.md) — **how to write a PRD kodawari
+  understands** (read this before your first real run)
 - [docs/OPERATOR_RUNBOOK.md](docs/OPERATOR_RUNBOOK.md) — error codes,
   troubleshooting
 - [docs/CAPABILITY_MAP.md](docs/CAPABILITY_MAP.md) — capability × backend
   wiring matrix
 - [docs/contracts/ENV_VAR_REFERENCE.md](docs/contracts/ENV_VAR_REFERENCE.md)
   — every env var, what it does, what it defaults to
+- [examples/hello-bookmark/](examples/hello-bookmark/) — 5-minute walkable
+  end-to-end demo
+
+中文补充文档：[README.zh-CN.md](README.zh-CN.md) · [WRITING_PRD.zh-CN.md](docs/WRITING_PRD.zh-CN.md) ·
+架构总览 [PLATFORM_OVERVIEW.zh-CN.md](docs/architecture/PLATFORM_OVERVIEW.zh-CN.md) ·
+运行手册 [RUNBOOK_AND_GATES.zh-CN.md](docs/operations/RUNBOOK_AND_GATES.zh-CN.md)
 
 ## License
 

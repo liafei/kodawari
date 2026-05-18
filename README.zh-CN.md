@@ -69,6 +69,31 @@ flowchart LR
 PEER_REVIEW 回 IMPLEMENT 的虚线箭头是**自愈 fix-loop**：reviewer 标 `must_fix`
 时，executor 重新实现、verify + review 重跑。直到 approved 或撞 `max_cycles`。
 
+### 平实说一遍这 5 步
+
+**1. 读取 + 切片。** spec 里有 `## Slice 1:` `## Slice 2:` 标记 → 按顺序处
+理；没有 → 当一个整体。
+
+**2. 规划。** planner 模型起草实现方案（要改哪些文件、写什么测试、契约细
+节）。reviewer 模型审计方案，有 must_fix 就退回 planner 修。直到两边收敛。
+
+**3. 拆 task。** 通过的方案被拆成 5–7 个小 task，每个 task 改一组聚焦的文
+件。task 之间的依赖关系记录在 graph 里。
+
+**4. 执行。** 按依赖顺序，每个 task 跑完整循环：executor 模型用受限
+tool-use 协议写代码（read / str_replace / write_new_file）→ pytest 真跑 →
+代码质量 gate 真跑 → reviewer 模型审实现。reviewer 有 must_fix 就让
+executor 重写、verify + review 重跑。批准 → 下一个 task。
+
+**5. 上线门。** 所有 task 过了，kodawari 把变更打包成 review bundle，停在
+手动 ship 决策。你跑 `kodawari decide --action accept` ship 或 `--action
+reject` 停。
+
+多 slice spec 的话，**步骤 2–4 每个 slice 跑一遍**，步骤 5 在所有 slice 完
+成后跑一次。
+
+### 角色配置
+
 **三个 LLM 角色**，独立配置在 `.claude/workflow/models.yaml`：
 
 | 角色 | 职责 | 示例 |

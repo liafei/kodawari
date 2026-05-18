@@ -76,6 +76,37 @@ self-healing fix-loop: when the reviewer flags `must_fix` items, the
 executor re-implements and verify + review re-run. Loop continues until
 approved or `max_cycles` hit.
 
+### The 5 steps in plain language
+
+**1. Read + slice.** If the spec has `## Slice 1:` `## Slice 2:` markers,
+kodawari processes them in sequence. Otherwise it treats the whole spec
+as one unit.
+
+**2. Plan.** A planner model drafts the implementation (files to change,
+tests to write, contract details). A reviewer model audits the plan. If
+the reviewer raises must-fix issues, the planner revises. Loop until
+they converge.
+
+**3. Generate task graph.** The approved plan becomes 5–7 small tasks,
+each focused on a tight group of files. Dependencies between tasks are
+recorded.
+
+**4. Execute.** For each task in dependency order, the full cycle runs:
+the executor model writes code via constrained tool-use (read /
+str_replace / write_new_file) → pytest actually runs → the code-quality
+gate actually runs → a reviewer model audits the implementation. If the
+reviewer flags must-fix, the executor re-implements and verify + review
+re-run. Approved → next task.
+
+**5. Ship gate.** After all tasks pass, kodawari packages the changes
+into a review bundle and stops at a manual ship decision. Run `kodawari
+decide --action accept` to ship or `--action reject` to halt.
+
+For multi-slice specs, **steps 2–4 run once per slice**; step 5 runs
+once across all slices at the end.
+
+### Roles
+
 **Three LLM roles**, independently configured in `.claude/workflow/models.yaml`:
 
 | Role | What it does | Examples |

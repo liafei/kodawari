@@ -124,6 +124,12 @@ You can mix providers: Claude planner + GPT reviewer + custom-HTTP executor.
 - **Closure-tracing dependency skips**: when a task fails, downstream tasks
   report `blocked_by: [<failed-ancestor>]` instead of just the immediate
   unsatisfied dep — root cause is one click away.
+- **Multi-slice PRD loop**: declare `## Slice 1:`, `## Slice 2:` (or
+  `## 切片 1:` / `## Phase N:`) in your PRD to ship a big feature in
+  sequential units. Each slice runs plan + work independently under its
+  own `planning/<feature>/slice_NN/` directory; one final review + release
+  at the end. Resume support included. See
+  [docs/PIPELINE_DEEP_DIVE.md](docs/PIPELINE_DEEP_DIVE.md) Stage 1.
 
 ## Status
 
@@ -161,6 +167,9 @@ scripts/                  # bootstrap + maintenance scripts
 - [docs/USER_GUIDE.md](docs/USER_GUIDE.md) — full operator manual
 - [docs/WRITING_PRD.md](docs/WRITING_PRD.md) — **how to write a PRD kodawari
   understands** (read this before your first real run)
+- [docs/PIPELINE_DEEP_DIVE.md](docs/PIPELINE_DEEP_DIVE.md) — **what actually
+  happens inside `work-all`**: 8 stages, every safety mechanism's code
+  location, multi-slice loop semantics. For contributors / debug.
 - [docs/OPERATOR_RUNBOOK.md](docs/OPERATOR_RUNBOOK.md) — error codes,
   troubleshooting
 - [docs/CAPABILITY_MAP.md](docs/CAPABILITY_MAP.md) — capability × backend

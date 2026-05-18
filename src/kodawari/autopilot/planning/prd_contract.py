@@ -405,6 +405,7 @@ def build_prd_intake(prd_text: str, *, feature: str = "") -> dict[str, Any]:
     source_of_truth_canonical = canonicalize_source_of_truth(source_of_truth)
     layers, used_default_layers = _layers(prd_text, sections)
     path_type = _path_type(prd_text, sections)
+    slices = extract_prd_slices(prd_text)
     payload = {
         "schema_version": PRD_INTAKE_SCHEMA_VERSION,
         "generated_at": _utc_now_iso(),
@@ -420,6 +421,7 @@ def build_prd_intake(prd_text: str, *, feature: str = "") -> dict[str, Any]:
             source_of_truth_canonical=source_of_truth_canonical,
         ),
         "out_of_scope": _out_of_scope(prd_text, sections),
+        "slices": slices,
     }
     issues = _confidence_issues(
         business_outcome=business_outcome,
@@ -429,6 +431,53 @@ def build_prd_intake(prd_text: str, *, feature: str = "") -> dict[str, Any]:
     payload["confidence"] = "low" if issues else "high"
     payload["confidence_issues"] = issues
     return payload
+
+
+# ---------------------------------------------------------------------------
+# Multi-slice PRD detection (Stage E1: epic replan)
+# ---------------------------------------------------------------------------
+
+# Matches H2 headings of the form "## Slice 1: title" / "## 切片 1: title" /
+# "## Phase 1: title" / "## Part 1: title". The slice index must be numeric
+# and the colon (full-width or ASCII) is required so we don't mis-detect
+# section headings like "## Slice options" or "## 切片说明".
+_SLICE_HEADING_RE = re.compile(
+    r"^##\s+(?:Slice|Phase|Part|切片|阶段|部分)\s*(\d+)\s*[:：]\s*(.+?)\s*$",
+    re.MULTILINE,
+)
+
+
+def extract_prd_slices(prd_text: str) -> list[dict[str, Any]]:
+    """Extract multi-slice markers from a PRD.
+
+    A multi-slice PRD declares discrete shipping units via H2 headings:
+    ``## Slice 1: <title>`` or ``## 切片 1: <title>``. When present, kodawari
+    work-all iterates the slices in order — running plan + work for each one
+    independently — instead of treating the whole PRD as a single unit.
+
+    Returns ``[]`` when the PRD has zero or one slice marker (single-slice
+    mode, the historical default). Slice indices declared in the PRD are
+    preserved as-is, but the returned list is sorted by appearance order so
+    a misnumbered PRD (e.g. "Slice 2" before "Slice 1") still gets the
+    document's intent.
+    """
+    matches = list(_SLICE_HEADING_RE.finditer(prd_text))
+    if len(matches) < 2:
+        return []
+    slices: list[dict[str, Any]] = []
+    for position, match in enumerate(matches):
+        start = match.end()
+        end = matches[position + 1].start() if position + 1 < len(matches) else len(prd_text)
+        body = prd_text[start:end].strip("\n")
+        declared_index = int(match.group(1))
+        title = _clean_text(match.group(2))
+        slices.append({
+            "position": position,
+            "declared_index": declared_index,
+            "title": title,
+            "content": body,
+        })
+    return slices
 
 
 def validate_prd_intake(payload: dict[str, Any]) -> list[ValidationIssue]:

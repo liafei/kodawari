@@ -108,6 +108,7 @@ provider：Claude planner + GPT reviewer + 自托管 executor 等。
 - **Greenfield 一等公民**：scaffold + 持久化 manifest + planner 模式信号，意味着空目录 + PRD 端到端跑通，无需人工提示 archetype。
 - **Wall-clock 看门狗**：`--max-wall-clock-seconds` 超时写 `ABORT_REPORT.json` 并 exit 124（POSIX 超时约定）—— 没有永远跑下去的 loop。
 - **闭包追溯的依赖跳过**：task 失败时下游 task 报 `blocked_by: [<failed-ancestor>]` 而非直接的 missing dep —— 根因一眼可见。
+- **多 slice PRD 循环**：在 PRD 里写 `## Slice 1:`、`## Slice 2:`（或 `## 切片 1:` / `## Phase N:`）声明，把大 feature 拆成顺序交付的几段。每个 slice 独立跑 plan + work，放在自己的 `planning/<feature>/slice_NN/` 目录下；最后只跑一次 review + release。支持中途失败 resume。详见 [docs/PIPELINE_DEEP_DIVE.zh-CN.md](docs/PIPELINE_DEEP_DIVE.zh-CN.md) Stage 1。
 
 ## 状态
 
@@ -143,6 +144,7 @@ examples/hello-bookmark/  # 5 分钟可走完的 hello-world 示例
 - [docs/QUICKSTART.md](docs/QUICKSTART.md) — 首次跑通走查（30s noop、10min Claude 订阅、空目录起步）
 - [docs/USER_GUIDE.md](docs/USER_GUIDE.md) — 完整操作手册
 - [docs/WRITING_PRD.zh-CN.md](docs/WRITING_PRD.zh-CN.md) — **如何写 kodawari 喜欢的 PRD**（首次跑通必看）
+- [docs/PIPELINE_DEEP_DIVE.zh-CN.md](docs/PIPELINE_DEEP_DIVE.zh-CN.md) — **`work-all` 里面真实发生了什么**：8 个 stage、每个安全机制对应的代码位置、多 slice 循环语义。给贡献者 / 排查用
 - [docs/OPERATOR_RUNBOOK.md](docs/OPERATOR_RUNBOOK.md) — 错码索引、故障排查
 - [docs/CAPABILITY_MAP.md](docs/CAPABILITY_MAP.md) — capability × backend 兼容矩阵
 - [docs/contracts/ENV_VAR_REFERENCE.md](docs/contracts/ENV_VAR_REFERENCE.md) — 所有 env var 完整索引

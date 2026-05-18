@@ -5,6 +5,29 @@ All notable changes to kodawari will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.2] — 2026-05-18
+
+### Added
+
+- **Multi-slice PRD loop**. Declare `## Slice 1: …` / `## Slice 2: …`
+  (or `## 切片 N: …` / `## Phase N:` / `## Part N:`) in your PRD and
+  `work-all` runs plan + work once per slice in sequence, then a single
+  parent-level review + release at the end. Resume support via
+  `.multi_slice_state.json`. Closes the user-expected mental model
+  "execute first slice's tasks → return to PRD → split next part →
+  repeat" that previously required manual PRD splitting.
+- **PIPELINE_DEEP_DIVE.md (+ .zh-CN)**: comprehensive internal-flow
+  reference. 8 stages, every safety mechanism's code location, artifact
+  chain. Targets contributors and anyone debugging unusual failures.
+- 19 regression tests pinning slice detection (English + Chinese
+  markers, out-of-order indices, build_prd_intake integration) and the
+  multi-slice loop (single→legacy path, multi→loop, halt on failure,
+  resume from state, --force-rerun).
+
+### Changed
+
+- README + README.zh-CN highlight multi-slice and link to the deep-dive.
+
 ## [0.1.1] — 2026-05-18
 
 ### Changed

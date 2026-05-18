@@ -97,6 +97,40 @@ task 最多 5 个文件）。
 看 [examples/hello-bookmark/PRD.md](../examples/hello-bookmark/PRD.md) —— 一份
 能产出 `confidence: high` + 干净 4-5 task graph 的完整 PRD。
 
+## 大 PRD：声明 slice
+
+如果你的 feature 大到一次规划对话搞不定，给 PRD 加 `## Slice N: <title>`
+（或 `## 切片 N:` / `## Phase N:` / `## Part N:` / `## 阶段 N:` / `## 部分 N:`）
+标记。kodawari 自动探测到 2 个或更多 slice，按顺序跑每个 slice
+的 plan + work（详见 [PIPELINE_DEEP_DIVE.zh-CN.md](PIPELINE_DEEP_DIVE.zh-CN.md)
+Stage 1 的循环语义）。
+
+```markdown
+# PRD: <feature 名>
+
+## 目标
+<跨 slice 共享的高层目标>
+
+## Slice 1: schema + repository 层
+<这个 slice 的范围 / 契约 / 分层 / acceptance（按上面 5 段模板）>
+
+## Slice 2: API endpoints
+<同样 5 段，scope 到这个 slice>
+
+## Slice 3: tests + docs
+<同样 5 段>
+```
+
+每个 slice 在 `planning/<feature>/slice_NN/` 独立目录跑完整 plan + execute
++ 每个 task 的 verify 和 peer review。所有 slice 完成后父级跑**一次** review
++ release。`.multi_slice_state.json` 记录进度，支持中途失败 resume。
+
+可识别的同义标记：`## Phase N:`、`## Part N:`、`## 切片 N:`、`## 阶段 N:`、
+`## 部分 N:`。**必须**带数字 + 冒号（这样 `## Slice options` 这种描述性
+标题不会被误识别）。
+
+只有 1 个或 0 个标记 → 走历史的单 slice 流程，BC 完整保留。
+
 ## kodawari 不适合的场景
 
 如果你的 feature 本身是模糊的、探索性的、open-ended（"重新设计 auth 层"），

@@ -204,6 +204,26 @@ When the executor is stalling without writing files:
 |---|---|---|
 | `doctor preflight FAIL` (rc=2) | One or more static checks failed. | Run with `--output preflight.json` and inspect each FAIL entry's `remediation`. |
 
+### Multi-slice diagnostics
+
+When a PRD declares two or more `## Slice N:` markers, `work-all` runs in
+multi-slice mode. Useful artifacts to inspect on failure:
+
+- `planning/<feature>/.multi_slice_state.json` — overall progress:
+  completed positions, current_position, status (`running` /
+  `all_slices_complete` / `halted`).
+- `planning/<feature>/slice_NN/` — per-slice planning_dir, contains the
+  same artifact set a single-slice run produces.
+- `planning/<feature>/slice_NN/PRD_SLICE.md` — the per-slice PRD that
+  was actually fed to the planner; inspect if planner produced
+  unexpected scope.
+
+Common failure pattern: slice 0 passes, slice 1 plan step times out →
+`.multi_slice_state.json:status="halted", current_position=1,
+completed_positions=[0]`. Fix the underlying issue (often slice content
+too vague), then re-run `kodawari work-all`; slice 0 is auto-skipped via
+resume. Use `--force-rerun` to recompute all slices.
+
 ## Source Of Truth
 
 - capabilities: [CAPABILITY_MAP.md](CAPABILITY_MAP.md)

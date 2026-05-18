@@ -104,6 +104,43 @@ See [examples/hello-bookmark/PRD.md](../examples/hello-bookmark/PRD.md)
 for a complete PRD that produces `confidence: high` + a clean 4-5 task
 graph.
 
+## Big PRDs: declare slices
+
+If your feature is large enough that a single planning round can't cover
+it cleanly, split it into **slices** by adding `## Slice N: <title>`
+markers. kodawari auto-detects two or more slices and runs plan + work
+once per slice in sequence (see [PIPELINE_DEEP_DIVE.md](PIPELINE_DEEP_DIVE.md)
+Stage 1 for the loop semantics).
+
+```markdown
+# PRD: <feature name>
+
+## 目标
+<top-level outcome that applies to all slices>
+
+## Slice 1: schema + repository
+<all the slice-specific scope, contract, layers, acceptance sections
+ from the 5-section recipe above>
+
+## Slice 2: API endpoints
+<same recipe, scoped to this slice>
+
+## Slice 3: tests + docs
+<same recipe>
+```
+
+Each slice gets its own `planning/<feature>/slice_NN/` directory and runs
+end-to-end (plan + execute + per-task verify and peer review). A single
+final review + release runs at the parent level once all slices pass.
+`.multi_slice_state.json` tracks progress for resume support.
+
+Synonyms accepted: `## Phase N:`, `## Part N:`, `## 切片 N:`, `## 阶段 N:`,
+`## 部分 N:`. The numeric index + colon is required (so descriptive
+headings like `## Slice options` won't be mis-detected).
+
+A single slice or zero markers triggers the historical single-slice
+flow — full back-compat with PRDs that don't know about slicing.
+
 ## When kodawari is the wrong tool
 
 If your feature is genuinely ambiguous, exploratory, or open-ended

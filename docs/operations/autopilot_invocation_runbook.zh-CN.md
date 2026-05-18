@@ -1,5 +1,11 @@
 # Autopilot 调用手册（newsapp 实战验证版）
 
+> ⚠️ **本文档保留了 v0.1.2 之前的冗长 CLI 例子作为历史/高级排查参考**。
+> 新用户上手请用简化形式 `kodawari work-all --feature X --prd Y`（默认值已
+> 经合理）。完整流程见 [PIPELINE_DEEP_DIVE.zh-CN.md](../PIPELINE_DEEP_DIVE.zh-CN.md)。
+> 下文里所有 `--executor-backend XXX --max-cycles N --real-peer-review …`
+> 的形式都仍然能用，但通常不需要显式传——它们的 default 已经覆盖。
+
 > 2026-04-24 首次跑通：p1c-google-trends-rss T1/T2/T3 连续 3 个 task 全部 PASS，gate 0 violations。
 > 本文记录**当时生效的完整调用方式**以及 codex 后端失败时的排查清单。
 

@@ -1,5 +1,12 @@
 ﻿# 二、运行操作、门禁规则与后续路线
 
+> ⚠️ **本文是面向 operator/CI/排障的深度运行手册**。普通用户上手请先看
+> [QUICKSTART.md](../QUICKSTART.md) + [USER_GUIDE.md](../USER_GUIDE.md)；流程内核
+> 见 [PIPELINE_DEEP_DIVE.zh-CN.md](../PIPELINE_DEEP_DIVE.zh-CN.md)。本文里
+> 出现的 `--executor-backend XXX --max-cycles N` 等显式 flag 形式从 v0.1.2 起
+> **大多数情况下不需要**——`.claude/workflow/defaults.yaml` + 内置默认已经
+> 覆盖。仅在需要 override 默认时才显式传。
+
 ## 1. 文档目的
 
 本文件是面向 operator、CI 与排障场景的中文运行手册，集中说明：

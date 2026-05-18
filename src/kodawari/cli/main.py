@@ -55,6 +55,14 @@ def main(argv: list[str] | None = None) -> int:
     project_root = getattr(args, "project_root", None)
     if project_root:
         load_dotenv(Path(project_root))
+        # Fill argparse None-valued CLI defaults from .claude/workflow/defaults.yaml
+        # (the project-level "settings page"). Keys with explicit user values are
+        # left alone; keys with built-in defaults (e.g. --gate-profile="advisory")
+        # are also left alone because argparse already filled them. This only
+        # affects the handful of args declared with default=None — see
+        # workflow_defaults.BUILTIN_DEFAULTS for the list.
+        from kodawari.cli.runtime.workflow_defaults import apply_workflow_defaults
+        apply_workflow_defaults(args, Path(project_root))
     configure_cli_logging(int(getattr(args, "verbose", 0) or 0))
     guard_payload = _repo_mismatch_guard_payload(str(getattr(args, "command", "")))
     if guard_payload is not None:

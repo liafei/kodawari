@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+from kodawari.cli.runtime.workflow_defaults import render_default_defaults_yaml
 from kodawari.infra.io_atomic import atomic_write_text
 
 
@@ -77,11 +78,13 @@ def run_init_wizard_command(args: argparse.Namespace) -> int:
 
     models_yaml = _render_models_yaml(answer)
     env_example = _render_env_example(answer)
+    defaults_yaml = render_default_defaults_yaml()
 
     written = _write_artifacts(
         project_root=project_root,
         models_yaml=models_yaml,
         env_example=env_example,
+        defaults_yaml=defaults_yaml,
         overwrite=overwrite,
     )
 
@@ -455,11 +458,13 @@ def _write_artifacts(
     project_root: Path,
     models_yaml: str,
     env_example: str,
+    defaults_yaml: str,
     overwrite: bool,
 ) -> list[Path]:
     config_dir = project_root / ".claude" / "workflow"
     config_dir.mkdir(parents=True, exist_ok=True)
     models_path = config_dir / "models.yaml"
+    defaults_path = config_dir / "defaults.yaml"
     env_path = project_root / ".env.example"
 
     written: list[Path] = []
@@ -469,6 +474,13 @@ def _write_artifacts(
             backup.write_text(models_path.read_text(encoding="utf-8"), encoding="utf-8")
     atomic_write_text(models_path, models_yaml)
     written.append(models_path)
+
+    # defaults.yaml is greenfield-only: only write if missing, never overwrite
+    # an existing one (it's intentionally user-editable; the wizard shouldn't
+    # clobber tuned values on a re-run).
+    if not defaults_path.exists():
+        atomic_write_text(defaults_path, defaults_yaml)
+        written.append(defaults_path)
 
     if env_path.exists() and not overwrite:
         backup = env_path.with_suffix(".example.bak.before_wizard")

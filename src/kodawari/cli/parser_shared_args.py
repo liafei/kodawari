@@ -11,7 +11,18 @@ from kodawari.gate import list_profiles
 
 def add_model_and_reviewer_arguments(parser: argparse.ArgumentParser) -> None:
     """Add executor/reviewer model and backend arguments shared across parsers."""
-    parser.add_argument("--real-peer-review", action="store_true", default=False, help="Enable real peer review")
+    parser.add_argument(
+        "--real-peer-review",
+        action="store_true",
+        default=None,
+        help="Force real peer review on (default — set by .claude/workflow/defaults.yaml or builtin True)",
+    )
+    parser.add_argument(
+        "--no-peer-review",
+        action="store_false",
+        dest="real_peer_review",
+        help="Opt out of peer review (overrides defaults.yaml + builtin default)",
+    )
     parser.add_argument("--require-real-peer-review", action="store_true", default=False, help="Require real peer review (fail if unavailable)")
     parser.add_argument("--real-opus-review", action="store_true", default=False, help="Legacy alias for --real-peer-review")
     parser.add_argument("--require-real-opus-review", action="store_true", default=False, help="Legacy alias for --require-real-peer-review")
@@ -47,7 +58,7 @@ def add_work_runtime_arguments(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--profile", default="profiles/generic.yaml")
     parser.add_argument("--verify-cmd", default="pytest -q")
-    parser.add_argument("--max-cycles", type=int, default=8)
+    parser.add_argument("--max-cycles", type=int, default=None, help="Maximum collaboration cycles per task (default 5)")
     parser.add_argument("--parallel-workers", type=int, default=2, help="Worker slots for parallel coordinator assignment")
     parser.add_argument("--token-budget", type=int, default=300000)
     parser.add_argument("--gate-profile", default="advisory", choices=list_profiles())
@@ -76,10 +87,10 @@ def add_work_runtime_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--max-wall-clock-seconds",
         type=int,
-        default=0,
+        default=None,
         help=(
             "Whole-loop wall-clock budget (seconds) forwarded to the nested autopilot step. "
-            "0 disables (default). Independent of WORKFLOW_EXECUTOR_TIMEOUT_SECONDS (per-round)."
+            "Default 3600 (1h); pass 0 to disable. Independent of WORKFLOW_EXECUTOR_TIMEOUT_SECONDS."
         ),
     )
     add_model_and_reviewer_arguments(parser)

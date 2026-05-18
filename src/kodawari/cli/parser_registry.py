@@ -62,7 +62,7 @@ from kodawari.gate import list_profiles
 
 
 def _register_autopilot_command(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
-    parser = sub.add_parser("autopilot", help="Run the kodawari autopilot loop")
+    parser = sub.add_parser("autopilot", help="Run the workflow-sdk autopilot loop")
     _add_project_root_argument(parser)
     parser.add_argument("--feature", required=True)
     parser.add_argument("--task", default="", help="Task direction for model-driven planning")
@@ -70,7 +70,7 @@ def _register_autopilot_command(sub: argparse._SubParsersAction[argparse.Argumen
     parser.add_argument("--requirements-file", help="Compatibility alias for --prd")
     parser.add_argument("--profile", default="profiles/generic.yaml")
     parser.add_argument("--verify-cmd", default="pytest -q")
-    parser.add_argument("--max-cycles", type=int, default=8)
+    parser.add_argument("--max-cycles", type=int, default=None, help="Maximum collaboration cycles per task (default 5, override via .claude/workflow/defaults.yaml)")
     parser.add_argument("--parallel-workers", type=int, default=2, help="Worker slots for parallel coordinator assignment")
     parser.add_argument("--token-budget", type=int, default=300000)
     parser.add_argument("--gate-profile", default="advisory", choices=list_profiles())
@@ -116,13 +116,12 @@ def _register_autopilot_command(sub: argparse._SubParsersAction[argparse.Argumen
     parser.add_argument(
         "--max-wall-clock-seconds",
         type=int,
-        default=0,
+        default=None,
         help=(
             "Whole-loop wall-clock budget (seconds). When exceeded, autopilot writes "
-            "ABORT_REPORT.json into planning_dir and exits 124. 0 (default) disables. "
-            "This is independent of WORKFLOW_EXECUTOR_TIMEOUT_SECONDS, which is a "
-            "per-round budget — wall-clock counts elapsed time across all rounds and "
-            "cycles."
+            "ABORT_REPORT.json into planning_dir and exits 124. Default 3600 (1 hour); "
+            "override via .claude/workflow/defaults.yaml or pass 0 to disable. "
+            "Independent of WORKFLOW_EXECUTOR_TIMEOUT_SECONDS (per-round budget)."
         ),
     )
     parser.add_argument(
@@ -168,7 +167,7 @@ def _register_serve_command(sub: argparse._SubParsersAction[argparse.ArgumentPar
 
     parser = sub.add_parser(
         "serve",
-        help="Run the kodawari web UI bridge (FastAPI) on a local port",
+        help="Run the workflow-sdk web UI bridge (FastAPI) on a local port",
     )
     parser.add_argument(
         "--root",
@@ -186,7 +185,7 @@ def _register_serve_command(sub: argparse._SubParsersAction[argparse.ArgumentPar
 
 
 def _register_doctor_command(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
-    parser = sub.add_parser("doctor", help="Diagnose kodawari runtime configuration")
+    parser = sub.add_parser("doctor", help="Diagnose workflow-sdk runtime configuration")
     nested = parser.add_subparsers(dest="doctor_command", required=True)
     models = nested.add_parser("models", help="Diagnose models.v2 role/transport configuration")
     _add_project_root_argument(models)
@@ -684,7 +683,7 @@ def _register_migrate_artifacts_command(sub: argparse._SubParsersAction[argparse
 
 
 def _register_self_repair_command(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
-    parser = sub.add_parser("self-repair", help="Generate a kodawari self-repair task from run artifacts")
+    parser = sub.add_parser("self-repair", help="Generate a workflow-sdk self-repair task from run artifacts")
     _add_project_root_argument(parser)
     parser.add_argument("--feature", help="Feature/run id under planning/")
     parser.add_argument("--planning-dir", help="Explicit planning directory")
@@ -697,13 +696,13 @@ def _register_self_repair_command(sub: argparse._SubParsersAction[argparse.Argum
 def _register_self_repair_execute_command(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
     parser = sub.add_parser(
         "self-repair-execute",
-        help="Phase 3: spawn a kodawari autopilot run from a self-repair proposal (env-gated)",
+        help="Phase 3: spawn a workflow-sdk autopilot run from a self-repair proposal (env-gated)",
     )
     _add_project_root_argument(parser)
     parser.add_argument("--feature", help="Feature/run id under planning/")
     parser.add_argument("--planning-dir", help="Explicit planning directory holding .workflow_self_repair.json")
     parser.add_argument("--proposal", help="Path to a .workflow_self_repair.json (overrides --feature/--planning-dir)")
-    parser.add_argument("--sdk-root", help="Override kodawari root used for path containment + spawn cwd")
+    parser.add_argument("--sdk-root", help="Override workflow-sdk root used for path containment + spawn cwd")
     parser.add_argument(
         "--confidence-min",
         type=float,
@@ -728,7 +727,7 @@ def _register_self_repair_learn_command(sub: argparse._SubParsersAction[argparse
         "--target-after",
         help="Planning dir of the original target run AFTER the SDK fix landed (enables Level-2 evaluation)",
     )
-    parser.add_argument("--sdk-root", help="Override kodawari root used for the journal write")
+    parser.add_argument("--sdk-root", help="Override workflow-sdk root used for the journal write")
     parser.add_argument(
         "--lesson-project-root",
         help="Project root that owns the prompt_lessons store (default: SDK root)",
@@ -822,31 +821,31 @@ def _register_legacy_shell_commands(sub: argparse._SubParsersAction[argparse.Arg
     _register_legacy_runtime_command(
         sub,
         name="research",
-        help_text="Historical research shell routed to canonical kodawari runtime",
+        help_text="Historical research shell routed to canonical workflow-sdk runtime",
         default_max_cycles=8,
     )
     _register_legacy_runtime_command(
         sub,
         name="develop",
-        help_text="Historical develop shell routed to canonical kodawari runtime",
+        help_text="Historical develop shell routed to canonical workflow-sdk runtime",
         default_max_cycles=8,
     )
     _register_legacy_runtime_command(
         sub,
         name="quick-develop",
-        help_text="Historical quick-develop shell routed to canonical kodawari runtime",
+        help_text="Historical quick-develop shell routed to canonical workflow-sdk runtime",
         default_max_cycles=3,
     )
     _register_legacy_runtime_command(
         sub,
         name="optimize-existing-develop",
-        help_text="Historical optimize-existing-develop shell routed to canonical kodawari runtime",
+        help_text="Historical optimize-existing-develop shell routed to canonical workflow-sdk runtime",
         default_max_cycles=8,
     )
 
 
 def build_parser(*, help_all: bool = True) -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="kodawari", description="kodawari CLI")
+    parser = argparse.ArgumentParser(prog="kodawari", description="workflow-sdk CLI")
     parser.add_argument("-v", "--verbose", action="count", default=0, help="Increase CLI logging verbosity")
     parser.add_argument("--help-all", action="store_true", help="Show operator and debug commands in top-level help")
     sub = parser.add_subparsers(dest="command", required=True)

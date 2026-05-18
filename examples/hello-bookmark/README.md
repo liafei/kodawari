@@ -41,14 +41,13 @@ kodawari doctor preflight --feature bootstrap --prd ./PRD.md
 #    Expected: status PASS (or WARN with non-blocking hints)
 
 # 5. Run the full pipeline (planner → executor → reviewer → release gate)
-kodawari work-all \
-  --feature bootstrap \
-  --prd ./PRD.md \
-  --planner-route model \
-  --max-cycles 3 \
-  --max-wall-clock-seconds 1800 \
-  --real-peer-review
+kodawari work-all --feature bootstrap --prd ./PRD.md
 ```
+
+Sensible defaults are applied automatically (peer review on, 5 cycles per
+task, 1-hour wall-clock ceiling). To tune any of them edit
+`.claude/workflow/defaults.yaml`, or pass an explicit CLI flag for a
+one-off override (e.g., `--max-cycles 10`, `--no-peer-review`).
 
 ## What to expect
 

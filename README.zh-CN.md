@@ -39,22 +39,21 @@ process-heavy 的。
 # 1. 安装（Python 3.11+）
 pip install -e .
 
-# 2. 生成配置（交互式 — 选 preset，写出 models.yaml + .env.example）
+# 2. 生成配置（交互式 — 选 preset，写出 models.yaml、.env.example、
+#    以及项目级 defaults.yaml 设置文件）
 kodawari init-wizard
 
 # 3. 自检（不打网络；验证 project root / planning dir / env vars）
 kodawari doctor preflight --feature my-feature --prd ./PRD.md
 
 # 4. 跑
-kodawari work-all \
-  --feature my-feature \
-  --prd ./PRD.md \
-  --planner-route model \
-  --executor-backend openai_tool_use \
-  --max-cycles 3 \
-  --max-wall-clock-seconds 1800 \
-  --real-peer-review
+kodawari work-all --feature my-feature --prd ./PRD.md
 ```
+
+就这样 —— 跑只需要 2 个 flag。剩下的内置默认全部合理（peer review 开启、
+每个 task 5 cycle、1 小时 wall-clock 上限、advisory gate）。任何想微调的
+都在 `.claude/workflow/defaults.yaml`（wizard 生成）里改，或者在命令行
+显式传 flag 来一次性 override。
 
 ## 工作流程
 

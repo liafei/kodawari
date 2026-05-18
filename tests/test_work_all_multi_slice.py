@@ -177,9 +177,45 @@ def test_multi_slice_loop_visits_each_slice(tmp_path: Path, monkeypatch: pytest.
     assert len(review_calls) == 1
     assert len(release_calls) == 1
 
-    # Each slice's plan went to its own planning_dir.
+    # Each slice's plan went to its own per-slice planning_dir, named after
+    # the slice_feature (which is what autopilot derives its planning_dir from).
     plan_dirs = {Path(inv[1]).name for inv in plan_calls}
-    assert plan_dirs == {"slice_00", "slice_01", "slice_02"}
+    assert plan_dirs == {"multi-test_slice_00", "multi-test_slice_01", "multi-test_slice_02"}
+
+
+def test_multi_slice_loop_uses_per_slice_feature_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """Regression for multi-slice实战 bug: the autopilot work step derives its
+    planning_dir from --feature alone (autopilot_runtime_flow.resolve_planning_paths
+    ignores --planning-dir). So slice 1's autopilot saw slice 0's state file and
+    thought everything was already done, exiting immediately. Fix: each slice gets
+    a unique feature name like 'shortener_slice_00' so autopilot derives a
+    matching independent planning_dir."""
+    prd_path = tmp_path / "PRD.md"
+    prd_path.write_text(_multi_slice_prd(3), encoding="utf-8")
+
+    captured_features: list[str] = []
+
+    def _fake_handler(handler, namespace):
+        # Both plan and work steps must see the per-slice feature name, not
+        # the parent feature 'multi-test'.
+        captured_features.append(f"{handler.__name__}:{getattr(namespace, 'feature', '?')}")
+        return 0, {"status": "PASS"}
+
+    monkeypatch.setattr(work_all_runtime, "invoke_cli_handler", _fake_handler)
+
+    work_all_runtime.run_work_all_command(_make_args(tmp_path, prd_path))
+    capsys.readouterr()
+
+    plan_features = sorted(c.split(":")[1] for c in captured_features if c.startswith("run_plan_command"))
+    work_features = sorted(c.split(":")[1] for c in captured_features if c.startswith("run_autopilot_command"))
+
+    assert plan_features == ["multi-test_slice_00", "multi-test_slice_01", "multi-test_slice_02"], (
+        f"each slice's plan must get a unique feature suffix; got {plan_features}"
+    )
+    assert work_features == ["multi-test_slice_00", "multi-test_slice_01", "multi-test_slice_02"], (
+        f"each slice's work must use the SAME slice feature as its plan "
+        f"(otherwise autopilot writes to the wrong planning_dir); got {work_features}"
+    )
 
 
 def test_multi_slice_loop_halts_on_plan_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:

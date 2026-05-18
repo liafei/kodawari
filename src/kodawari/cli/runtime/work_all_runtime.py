@@ -351,13 +351,20 @@ def _run_work_all_multi_slice(
     for slice_info in slices:
         position = int(slice_info.get("position", 0))
         title = str(slice_info.get("title") or f"slice {position + 1}")
-        slice_label = f"slice_{position:02d}"
-        slice_dir = planning_dir / slice_label
+        # Per-slice feature name. The autopilot derives its planning_dir from
+        # feature alone (autopilot_runtime_flow.resolve_planning_paths), so
+        # using a unique feature suffix is the only way to give each slice an
+        # independent planning_dir — overriding --planning-dir alone is NOT
+        # enough because the work step's autopilot ignores it. Discovered
+        # during multi-slice实战 verification on greenfield URL-shortener.
+        slice_feature = f"{feature}_slice_{position:02d}"
+        slice_dir = (project_root / "planning" / slice_feature).resolve()
 
         if position in completed and not force_rerun:
             slice_records.append({
                 "position": position,
                 "title": title,
+                "slice_feature": slice_feature,
                 "status": "SKIPPED",
                 "skipped": True,
                 "reason": "resume_skip_prior_pass",
@@ -380,10 +387,11 @@ def _run_work_all_multi_slice(
             total=len(slices),
         )
 
-        # Plan step (slice-scoped)
+        # Plan step (slice-scoped: uses slice_feature so the autopilot work
+        # step that follows can derive a matching planning_dir).
         plan_args = argparse.Namespace(
             project_root=str(project_root),
-            feature=feature,
+            feature=slice_feature,
             planning_dir=str(slice_dir),
             task=f"Slice {position + 1}/{len(slices)}: {title}",
             prd=str(slice_prd_path),
@@ -398,6 +406,7 @@ def _run_work_all_multi_slice(
             slice_records.append({
                 "position": position,
                 "title": title,
+                "slice_feature": slice_feature,
                 "status": "FAIL",
                 "step": "plan",
                 "rc": int(plan_rc),
@@ -408,9 +417,10 @@ def _run_work_all_multi_slice(
             halted_slice = position
             break
 
-        # Work step (slice-scoped) — reuse the full args but redirect
-        # planning_dir, prd, and task to the slice context.
+        # Work step (slice-scoped) — reuse the full args but override
+        # feature so autopilot derives its planning_dir to slice_dir.
         work_args = argparse.Namespace(**vars(args))
+        setattr(work_args, "feature", slice_feature)
         setattr(work_args, "planning_dir", str(slice_dir))
         setattr(work_args, "prd", str(slice_prd_path))
         setattr(work_args, "task", f"Slice {position + 1}/{len(slices)}: {title}")
@@ -421,6 +431,7 @@ def _run_work_all_multi_slice(
         slice_records.append({
             "position": position,
             "title": title,
+            "slice_feature": slice_feature,
             "status": work_record["status"],
             "step": "work",
             "rc": int(work_rc),

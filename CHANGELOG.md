@@ -5,6 +5,29 @@ All notable changes to kodawari will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.1.3] — 2026-05-18
+
+### Fixed
+
+- **Multi-slice loop**: per-slice planning_dir is now created via a unique
+  feature-suffix (`<feature>_slice_NN`) instead of relying on `--planning-dir`
+  override, which the work step's autopilot ignored
+  (`autopilot_runtime_flow.resolve_planning_paths` derives planning_dir from
+  `--feature` alone). Bug discovered during real-LLM实战 on a 3-slice URL
+  shortener PRD: slice 0 silently wrote to the parent planning_dir, then
+  slice 1's autopilot saw "all tasks complete" from slice 0's state and
+  exited immediately. Now each slice gets a clean planning_dir at
+  `planning/<feature>_slice_NN/`.
+
+### Validated
+
+- End-to-end real-LLM run on a 3-slice URL shortener PRD: all 3 slices
+  completed (repository → service → HTTP API), 7 Python files generated
+  totaling 454 lines, `pytest tests/` reports **24 passed**, FastAPI app
+  imports and exposes the contracted `POST /shorten` + `GET /{code}`
+  endpoints. ~20 minutes wall-clock with gpt-5.5 planner +
+  mimo-v2.5-pro executor/reviewer.
+
 ## [0.1.2] — 2026-05-18
 
 ### Added

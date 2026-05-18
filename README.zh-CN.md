@@ -7,7 +7,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Status: beta](https://img.shields.io/badge/status-beta-orange.svg)](#状态)
-[![Tests](https://img.shields.io/badge/tests-200%2B%20passing-brightgreen.svg)](#)
+[![CI](https://github.com/OWNER/kodawari/actions/workflows/test.yml/badge.svg)](https://github.com/OWNER/kodawari/actions/workflows/test.yml)
 
 [English](README.md) · [中文](README.zh-CN.md) · [深度剖析](docs/PIPELINE_DEEP_DIVE.zh-CN.md) · [Quickstart](docs/QUICKSTART.md) · [示例](examples/)
 

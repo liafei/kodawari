@@ -1,12 +1,21 @@
-# Writing a PRD for kodawari
+# Writing a feature spec for kodawari
 
 > 中文版本：[WRITING_PRD.zh-CN.md](WRITING_PRD.zh-CN.md)
 
-A PRD (Product Requirements Document) is the **single source of truth**
-kodawari reads to plan, implement, and verify your feature. Get the PRD
-right and the autopilot has a fighting chance. Get it wrong and you'll
-spend cycles fighting "low confidence" warnings, wrong layer guesses, or
-the planner inventing routes you didn't ask for.
+> **The CLI calls this file a "PRD"** (`--prd <path>`, with
+> `--requirements-file` as an alias) but kodawari doesn't care what you
+> call it. Any markdown that describes "what to build" works — a PRD, a
+> task spec, a feature brief, a requirements doc, an internal RFC. The
+> intake parser looks at the **structure** (the 5 sections below), not
+> the filename or document type. Use whatever your team calls these
+> documents; the rest of this guide says "PRD" for brevity.
+
+A PRD (Product Requirements Document, or whatever your team's
+equivalent is called) is the **single source of truth** kodawari reads
+to plan, implement, and verify your feature. Get it right and the
+autopilot has a fighting chance. Get it wrong and you'll spend cycles
+fighting "low confidence" warnings, wrong layer guesses, or the planner
+inventing routes you didn't ask for.
 
 This guide is a practical recipe — not an essay. Follow the structure
 below and the intake heuristic will produce a `high` confidence

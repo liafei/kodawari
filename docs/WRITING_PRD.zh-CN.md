@@ -1,11 +1,17 @@
-# 如何写 kodawari 喜欢的 PRD
+# 如何写 kodawari 喜欢的需求文档
 
 > English version: [WRITING_PRD.md](WRITING_PRD.md)
 
-PRD（Product Requirements Document）是 kodawari 读来做 planning、implementation、
-verification 的**单一事实来源**。PRD 写对，autopilot 有戏跑通。PRD 写错，
-你会浪费 cycle 跟 "low confidence" 警告 / 错的 layer 推断 / planner 凭空发明
-你没要的 route 对线。
+> **CLI 里这个文件叫 "PRD"**（`--prd <path>`，也接受 `--requirements-file` 作为别名），
+> 但 kodawari **不在乎你叫什么名字**。任何描述"要做什么"的 markdown 都能用——
+> PRD、任务规格、需求说明、feature brief、内部 RFC 都行。intake 解析器看
+> 的是 markdown 的**结构**（下面 5 段）不看文件名/文档类型。用你团队习
+> 惯的叫法就行；下面为了简洁统称 "PRD"。
+
+PRD（Product Requirements Document，或者你团队习惯叫的等价物）是 kodawari
+读来做 planning、implementation、verification 的**单一事实来源**。PRD 写
+对，autopilot 有戏跑通。PRD 写错，你会浪费 cycle 跟 "low confidence" 警告
+/ 错的 layer 推断 / planner 凭空发明你没要的 route 对线。
 
 这份指南是**实用配方**，不是论文。按下面的结构写，intake 启发式第一次就能产
 出 `confidence: high` 的 PRD_INTAKE.json。

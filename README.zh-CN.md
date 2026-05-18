@@ -15,16 +15,14 @@
 
 > *拘り*（kodawari）—— 日语「对细节的执着、匠人不愿妥协的精神」。
 
-kodawari 把一份**结构化的需求文档**——叫 PRD、任务规格、需求说明、feature
-brief 都行——交给一条多 LLM 流水线（planner / reviewer / executor），吐
-出一个已交付的 feature。每一步都有 **fail-closed 保证**：每个 "verify"
-都真跑 `pytest`，每个 "peer review" 都真调一次 reviewer 模型，每个
-"approval" 都锚定在 JSON artifact 上。production-strict 模式下没有任何
-silent-pass 路径。
+你写一份 markdown 描述要做的 feature——PRD、任务规格、需求说明、内部 RFC，
+你团队怎么叫都行。kodawari 读它，规划实现，写代码，跑测试，最后把一个
+等你拍板 ship/不 ship 的 feature 交还给你。
 
-> CLI flag 是 `--prd <path>`（也接受 `--requirements-file` 作为别名），但只要
-> markdown 写清楚 目标 / 范围 / 数据契约 / 分层 / Acceptance 5 段，叫什么名字
-> 都行。模板见 [`docs/WRITING_PRD.zh-CN.md`](docs/WRITING_PRD.zh-CN.md)。
+> CLI 用 `--prd <path>` 或者 `--requirements-file <path>` 传入文件（两个 flag
+> 都行）。文件名和文档类型不重要，intake 解析器看的是**结构**：目标 / 范围
+> / 数据契约 / 分层 / acceptance criteria。5 段模板见
+> [`docs/WRITING_PRD.zh-CN.md`](docs/WRITING_PRD.zh-CN.md)。
 
 ---
 

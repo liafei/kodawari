@@ -16,18 +16,16 @@
 > *拘り (kodawari)* — the Japanese concept of obsessive attention to detail, the
 > craftsman's refusal to accept anything less than what the work demands.
 
-kodawari hands a **structured requirements document** — call it a PRD, a
-task spec, a feature brief, whatever your team uses — to a multi-LLM
-pipeline (planner / reviewer / executor) and gets a shipped feature back,
-with **fail-closed guarantees** at every step: every "verify" is a real
-`pytest` invocation, every "peer review" is a real reviewer-model call,
-every "approval" is anchored to a JSON artifact. There is no silent-pass
-path under production-strict mode.
+You write a markdown describing the feature you want — a PRD, a task spec,
+a feature brief, an internal RFC, whatever your team writes. kodawari
+reads it, plans the implementation, writes the code, runs the tests, and
+hands back a feature ready for your ship-or-not decision.
 
-> The CLI flag is `--prd <path>` (with `--requirements-file` as an alias),
-> but any markdown that lays out goals / scope / data contract / layers /
-> acceptance criteria works. See [`docs/WRITING_PRD.md`](docs/WRITING_PRD.md)
-> for the 5-section recipe.
+> The CLI takes the file via `--prd <path>` or `--requirements-file <path>`
+> (either flag works). Filename and document type don't matter — the intake
+> parser looks at **structure**: goals, scope, data contract, layers,
+> acceptance criteria. The 5-section recipe is in
+> [`docs/WRITING_PRD.md`](docs/WRITING_PRD.md).
 
 ---
 

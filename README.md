@@ -1,21 +1,6 @@
 <div align="center">
+# kodawari
 
-**kodawari** is an open-source autopilot for AI-driven software development.
-**Autopilot for autonomous software delivery — PRD to shipped feature with strict no-fake-run guarantees.**
-
-It coordinates multiple LLMs — a **planner** drafting the design, an
-independent **reviewer** auditing it, and an **executor** writing the code —
-to turn a PRD or feature spec into shipped, tested code with full
-audit-able artifacts at every step.
-
-If you've used **Claude Code**, **Cursor**, **Aider**, or **OpenHands** and
-wanted a more rigorous, workflow-driven alternative — one that enforces
-real `pytest` runs and real peer review instead of single-model
-self-approval — kodawari is built for that.
-
-**Key concepts**: AI pair programming · agentic coding · multi-LLM
-orchestration · contract-first artifacts · greenfield project scaffolding ·
-test-driven AI development
 **Autopilot for autonomous software delivery — PRD to shipped feature with strict no-fake-run guarantees.**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -30,10 +15,25 @@ test-driven AI development
 > *拘り (kodawari)* — the Japanese concept of obsessive attention to detail, the
 > craftsman's refusal to accept anything less than what the work demands.
 
+**kodawari** is an open-source autopilot for AI-driven software development.
+It coordinates multiple LLMs — a **planner** drafting the design, an
+independent **reviewer** auditing it, and an **executor** writing the code —
+to turn a PRD or feature spec into shipped, tested code with full audit-able
+artifacts at every step.
+
+If you've used **Claude Code**, **Cursor**, **Aider**, or **OpenHands** and
+wanted a more rigorous, workflow-driven alternative — one that enforces real
+`pytest` runs and real peer review instead of single-model self-approval —
+kodawari is built for that.
+
+**Key concepts**: AI pair programming · agentic coding · multi-LLM
+orchestration · contract-first artifacts · greenfield project scaffolding ·
+test-driven AI development
+
 You write a markdown describing the feature you want — a PRD, a task spec,
-a feature brief, an internal RFC, whatever your team writes. kodawari
-reads it, plans the implementation, writes the code, runs the tests, and
-hands back a feature ready for your ship-or-not decision.
+a feature brief, an internal RFC, whatever your team writes. kodawari reads
+it, plans the implementation, writes the code, runs the tests, and hands
+back a feature ready for your ship-or-not decision.
 
 > The CLI takes the file via `--prd <path>` or `--requirements-file <path>`
 > (either flag works). Filename and document type don't matter — the intake

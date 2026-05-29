@@ -9,7 +9,7 @@ description = "Autopilot for autonomous software delivery — PRD to shipped fea
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-keywords = ["autopilot", "agent", "llm", "code-generation", "ai-coding", "contract-first"]
+keywords = ["autopilot", "agent", "llm", "code-generation", "ai-coding", "agentic-coding", "ai-agent", "multi-agent", "multi-llm", "prd-driven", "contract-first", "test-driven-development"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",

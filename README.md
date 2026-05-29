@@ -1,7 +1,6 @@
-<div align="center">
 # kodawari
 
-**Autopilot for autonomous software delivery — PRD to shipped feature with strict no-fake-run guarantees.**
+**AI coding autopilot for autonomous software delivery — turn a PRD or feature spec into shipped, tested code with multi-agent planning, real pytest, peer review, and strict no-fake-run guarantees.**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -9,8 +8,6 @@
 [![CI](https://github.com/liafei/kodawari/actions/workflows/test.yml/badge.svg)](https://github.com/liafei/kodawari/actions/workflows/test.yml)
 
 [English](README.md) · [中文](README.zh-CN.md) · [Deep dive](docs/PIPELINE_DEEP_DIVE.md) · [Quickstart](docs/QUICKSTART.md) · [Examples](examples/)
-
-</div>
 
 > *拘り (kodawari)* — the Japanese concept of obsessive attention to detail, the
 > craftsman's refusal to accept anything less than what the work demands.
@@ -26,9 +23,11 @@ wanted a more rigorous, workflow-driven alternative — one that enforces real
 `pytest` runs and real peer review instead of single-model self-approval —
 kodawari is built for that.
 
-**Key concepts**: AI pair programming · agentic coding · multi-LLM
-orchestration · contract-first artifacts · greenfield project scaffolding ·
-test-driven AI development
+**Key concepts**: AI pair programming · agentic coding · AI coding agent ·
+multi-agent software development · multi-LLM orchestration · PRD-driven
+development · contract-first artifacts · greenfield project scaffolding ·
+test-driven AI development · Claude Code / Cursor / Aider / OpenHands
+workflow alternative
 
 You write a markdown describing the feature you want — a PRD, a task spec,
 a feature brief, an internal RFC, whatever your team writes. kodawari reads

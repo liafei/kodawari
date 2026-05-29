@@ -26,13 +26,17 @@ from typing import Any
 _CREATE_NO_WINDOW = 0x08000000 if os.name == "nt" else 0
 
 
+def _is_windows() -> bool:
+    return os.name == "nt"
+
+
 def windows_safe_command(executable: str, *args: str) -> list[str]:
     """Return a subprocess ``argv`` that works for ``.cmd``/``.bat`` shims.
 
     On Windows, ``.cmd``/``.bat`` files must be executed via ``cmd.exe /c``.
     On POSIX, this is a pass-through.
     """
-    if os.name == "nt" and Path(executable).suffix.lower() in (".cmd", ".bat"):
+    if _is_windows() and Path(executable).suffix.lower() in (".cmd", ".bat"):
         return ["cmd.exe", "/c", executable, *args]
     return [executable, *args]
 

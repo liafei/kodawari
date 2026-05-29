@@ -1694,7 +1694,7 @@ class TestJitContextCommand:
     def test_build_command_wraps_windows_claude_cmd(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from kodawari.autopilot.planning.planning_agent import _build_command
 
-        monkeypatch.setattr("kodawari.autopilot.core.subprocess_compat.os.name", "nt")
+        monkeypatch.setattr("kodawari.autopilot.core.subprocess_compat._is_windows", lambda: True)
         monkeypatch.delenv("WORKFLOW_PLANNER_MAX_TURNS", raising=False)
 
         cmd = _build_command(executable=r"C:\npm\claude.cmd", model="", driver="claude_cli")

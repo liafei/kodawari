@@ -49,21 +49,7 @@ jobs:
         # next-task-selector closure trace, planning conversation core,
         # contract-first planning, PRD slice detection.
         run: |
-          python -m pytest -q --tb=short \
-            -p no:randomly \
-            tests/test_workflow_defaults.py \
-            tests/test_init_wizard.py \
-            tests/test_doctor_preflight.py \
-            tests/test_status_first_run_hint.py \
-            tests/test_verify_execution_mode.py \
-            tests/test_task_cycle_peer_review.py \
-            tests/test_autopilot_wall_clock.py \
-            tests/test_scaffold_manifest.py \
-            tests/test_next_task_selector.py \
-            tests/test_prd_slice_detection.py \
-            tests/test_work_all_multi_slice.py \
-            tests/test_planning_agent.py \
-            tests/test_contract_first_planning.py
+          python -m pytest -q --tb=short -p no:randomly tests/test_workflow_defaults.py tests/test_init_wizard.py tests/test_doctor_preflight.py tests/test_status_first_run_hint.py tests/test_verify_execution_mode.py tests/test_task_cycle_peer_review.py tests/test_autopilot_wall_clock.py tests/test_scaffold_manifest.py tests/test_next_task_selector.py tests/test_prd_slice_detection.py tests/test_work_all_multi_slice.py tests/test_planning_agent.py tests/test_contract_first_planning.py
 
       - name: CLI smoke — kodawari --help
         run: kodawari --help

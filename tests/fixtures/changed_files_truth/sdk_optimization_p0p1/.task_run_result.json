@@ -1,14 +1,6 @@
 {
-  "status": "FAIL",
-  "reason": "SCOPE_DRIFT_BLOCKED",
   "task_delta_changed_files": [
+    "docs/ENV_VAR_MIGRATION.md",
     "src/kodawari/schemas/review/peer_review_response.schema.json"
-  ],
-  "task_delta_changed_files_source": "baseline_delta:git_worktree",
-  "execution_result": {
-    "status": "PASS",
-    "changed_files": [
-      "docs/ENV_VAR_MIGRATION.md"
-    ]
-  }
+  ]
 }

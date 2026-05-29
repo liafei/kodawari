@@ -617,7 +617,7 @@ class EngineImplementationMixin:
             project_root=Path(self.config.project_root),
             feature=self.config.feature,
             task_label=runtime.task_label,
-            verify_cmd=self.config.verify_cmd,
+            verify_cmd=self._implementation_verify_cmd(),
             changed_files=changed_files,
             qa_payload={},
             instinct_hints=self._runtime_instinct_hints(runtime),

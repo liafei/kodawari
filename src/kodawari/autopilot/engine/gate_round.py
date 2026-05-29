@@ -246,11 +246,13 @@ def _emit_pre_gate(engine: Any, runtime: Any, action: Any, *, gate_attempt: int)
 def _resolve_verify_check(engine: Any, runtime: Any) -> dict[str, Any]:
     engine.state.current_stage = Stage.VERIFY
     runtime.post_execution_qa = engine._resolve_post_execution_qa(runtime)
+    verify_cmd_getter = getattr(engine, "_implementation_verify_cmd", None)
+    verify_cmd = verify_cmd_getter() if callable(verify_cmd_getter) else engine.config.verify_cmd
     runtime.verify_check = build_verify_check(
         project_root=engine.config.project_root,
         feature=engine.config.feature,
         task_label=runtime.task_label,
-        verify_cmd=engine.config.verify_cmd,
+        verify_cmd=verify_cmd,
         changed_files=list(runtime.last_changed_files),
         qa_payload=runtime.post_execution_qa,
         instinct_hints=_runtime_instinct_hints(runtime),

@@ -6,7 +6,7 @@ surface as an explicit contract instead of an accident of import paths.
 ## Stable Python API
 
 The top-level package exports only the names listed in
-`workflow_sdk.__all__`:
+`kodawari.__all__`:
 
 - `__version__`
 - `gate`

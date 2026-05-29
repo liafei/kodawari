@@ -161,7 +161,7 @@ def materialize_openai_tool_use_result(
         runtime = _build_runtime(config=config, request_path=request_path, request_payload=request_payload)
         _apply_recovery_card_action_only_mode(runtime, request_payload)
         runtime.write_tool_manifest()
-        preexisting_result = _maybe_accept_preexisting_recovery_state(runtime)
+        preexisting_result = _maybe_accept_preexisting_task_state(runtime)
         if preexisting_result is not None:
             runtime.write_tool_manifest()
             payload = _success_payload(runtime, preexisting_result)
@@ -325,8 +325,8 @@ def _maybe_auto_apply_recovery_patch_plan(runtime: ToolUseRuntime) -> dict[str, 
     )
 
 
-def _maybe_accept_preexisting_recovery_state(runtime: ToolUseRuntime) -> dict[str, Any] | None:
-    if not _preexisting_recovery_acceptance_enabled(runtime):
+def _maybe_accept_preexisting_task_state(runtime: ToolUseRuntime) -> dict[str, Any] | None:
+    if not _preexisting_task_acceptance_enabled(runtime):
         return None
     verify_cmd = str(runtime.request_payload.get("verify_cmd") or "").strip()
     if not verify_cmd:
@@ -344,17 +344,17 @@ def _maybe_accept_preexisting_recovery_state(runtime: ToolUseRuntime) -> dict[st
     )
     if not verify or not bool(verify.get("passed")):
         return None
-    runtime.finished_summary = "Runtime accepted pre-existing recovery task state after scoped verify passed."
+    runtime.finished_summary = "Runtime accepted pre-existing task state after scoped verify passed."
     return {
         "ok": True,
         "status": "FINISHED",
         "changed_files": changed_files,
         "verify_summary": redact_jsonable(verify),
-        "preexisting_recovery_state_accepted": True,
+        "preexisting_task_state_accepted": True,
     }
 
 
-def _preexisting_recovery_acceptance_enabled(runtime: ToolUseRuntime) -> bool:
+def _preexisting_task_acceptance_enabled(runtime: ToolUseRuntime) -> bool:
     if str(os.environ.get("WORKFLOW_DISABLE_PREEXISTING_RECOVERY_ACCEPTANCE") or "").strip().lower() in {
         "1",
         "true",
@@ -366,7 +366,18 @@ def _preexisting_recovery_acceptance_enabled(runtime: ToolUseRuntime) -> bool:
     if not isinstance(task_card, dict):
         return False
     recovery = task_card.get("recovery")
-    return isinstance(recovery, dict) and bool(str(recovery.get("source_action") or "").strip())
+    if isinstance(recovery, dict) and bool(str(recovery.get("source_action") or "").strip()):
+        return True
+    new_files = _dedupe_paths([str(item) for item in list(task_card.get("new_files") or [])])
+    if not new_files:
+        return False
+    declared = _dedupe_paths(
+        [str(item) for item in list(task_card.get("files_to_change") or [])]
+        or [str(item) for item in list(runtime.allowed_files or [])]
+    )
+    if not declared:
+        return False
+    return set(new_files).issubset(set(declared))
 
 
 def _patch_plan_failure_message(failures: list[Any]) -> str:

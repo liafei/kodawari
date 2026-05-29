@@ -1,7 +1,4 @@
 {
-  "schema_version": "claude.plugin.v1",
-  "name": "kodawari-facade",
-  "version": "0.1.0",
-  "description": "Thin facade plugin that routes /wf-* commands to canonical workflowctl surfaces.",
-  "entrypoint": "skills"
+  "name": "kodawari",
+  "version": "0.1.0"
 }

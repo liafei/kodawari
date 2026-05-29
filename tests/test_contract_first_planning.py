@@ -543,6 +543,49 @@ def test_task_graph_adjacent_layers_still_fail_when_app_src_sources_are_missing(
     assert any("model core file does not exist in project layout" in item for item in errors)
 
 
+def test_flat_node_server_js_project_maps_layers_to_existing_entry_and_test(tmp_path: Path) -> None:
+    (tmp_path / "package.json").write_text(
+        json.dumps({"name": "flat-node-api", "scripts": {"test": "node tests/test-jobs-isolation.js"}}),
+        encoding="utf-8",
+    )
+    (tmp_path / "server.js").write_text("module.exports = { listProducts: () => [] };\n", encoding="utf-8")
+    (tmp_path / "tests").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "tests" / "test-jobs-isolation.js").write_text("console.log('ok');\n", encoding="utf-8")
+    intake = build_prd_intake(
+        "\n".join(
+            [
+                "Implement ecommerce product, cart, and order APIs.",
+                "source of truth: data/products.json and data/orders.json",
+                "layer: schema repository service route",
+            ]
+        ),
+        feature="flat-node-ecommerce",
+    )
+    inventory = build_repo_inventory(project_root=tmp_path, archetype="node_api", capabilities=[], mode="existing")
+    plan = build_architecture_plan(
+        project_root=tmp_path,
+        prd_intake=intake,
+        repo_inventory=inventory,
+        planning_mode="existing",
+    )
+    graph = build_task_graph(
+        intake,
+        project_root=tmp_path,
+        repo_inventory=inventory,
+        architecture_plan=plan,
+        planning_mode="existing",
+    )
+
+    assert inventory["project_layout"]["kind"] == "flat"
+    assert inventory["project_layout"]["code_roots"] == ["server.js"]
+    assert graph["executability"]["status"] == "PASS"
+    assert not validate_task_graph(graph)
+    for task in graph["tasks"]:
+        assert task["core_files"][0] == "server.js"
+        assert "tests/test-jobs-isolation.js" in task["core_files"]
+    assert graph["boundary_debt"]["status"] == "WARN"
+
+
 def test_task_graph_validation_fails_when_project_layout_would_generate_fake_source_files(tmp_path: Path) -> None:
     intake = build_prd_intake(
         "\n".join(

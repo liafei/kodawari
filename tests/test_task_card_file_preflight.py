@@ -84,6 +84,19 @@ def test_preflight_blocks_when_new_file_already_exists(tmp_path: Path) -> None:
     assert report.issues[0].kind == "new_file_already_exists"
 
 
+def test_preflight_can_warn_when_preexisting_new_file_is_allowed(tmp_path: Path) -> None:
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "already_here.py").write_text("# existing\n", encoding="utf-8")
+    card = _card(
+        files_to_change=["src/already_here.py"],
+        new_files=["src/already_here.py"],
+    )
+    report = run_file_preflight(card, tmp_path, allow_existing_new_files=True)
+    assert report.blocked is False
+    assert report.issues == ()
+    assert report.warnings[0].kind == "new_file_already_exists_reused"
+
+
 def test_preflight_blocks_when_new_files_not_subset(tmp_path: Path) -> None:
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "a.py").write_text("# a\n", encoding="utf-8")

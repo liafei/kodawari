@@ -3,11 +3,11 @@
 Thin facade for canonical work-all entrypoint.
 
 ```bash
-workflowctl wf-work-all --project-root . --feature <feature> --prd <path>
+kodawari wf-work-all --project-root . --feature <feature> --prd <path>
 ```
 
 Canonical equivalent:
 
 ```bash
-workflowctl work all --project-root . --feature <feature> --prd <path>
+kodawari work all --project-root . --feature <feature> --prd <path>
 ```

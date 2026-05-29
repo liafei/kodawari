@@ -1579,6 +1579,52 @@ def test_openai_tool_use_accepts_preexisting_recovery_state_when_verify_passes(
     assert captured["changed_files"] == ["sample.txt"]
 
 
+def test_openai_tool_use_accepts_preexisting_new_files_when_verify_passes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = tmp_path / "project"
+    planning_dir = root / ".claude" / "workflow" / "run"
+    planning_dir.mkdir(parents=True)
+    _write(root / "lib" / "approvalQueue.js", "module.exports = {};\n")
+    _write(root / "db" / "migrations" / "0008_agent_approval_queue.sql", "-- ok\n")
+    _write(root / "tests" / "test-agent-approval-queue.js", "console.log('ok');\n")
+    files = [
+        "lib/approvalQueue.js",
+        "db/migrations/0008_agent_approval_queue.sql",
+        "tests/test-agent-approval-queue.js",
+    ]
+    payload = _request(root, planning_dir, verify_cmd="node tests/test-agent-approval-queue.js")
+    payload["files_to_change"] = files
+    payload["task_card"] = {
+        "files_to_change": files,
+        "new_files": files,
+    }
+    captured: dict[str, Any] = {}
+
+    def fake_verify(**kwargs: Any) -> dict[str, Any]:
+        captured.update(kwargs)
+        return {"status": "PASS", "passed": True, "stdout_excerpt": "65 passed"}
+
+    def fail_post_chat(**_kwargs: Any) -> dict[str, Any]:
+        raise AssertionError("model transport should not be called when declared new_files already verify")
+
+    monkeypatch.setattr(runner, "maybe_execute_verify_command", fake_verify)
+    monkeypatch.setattr(runner, "_post_chat", fail_post_chat)
+
+    result = runner.materialize_openai_tool_use_result(
+        config=_config(root, planning_dir, monkeypatch),
+        request_path=planning_dir / ".execution_request.json",
+        request_payload=payload,
+    )
+
+    assert result["status"] == "PASS"
+    assert result["changed_files"] == files
+    assert result["verify_summary"]["passed"] is True
+    assert result["implementer_note"]["claimed_intent"].startswith("Runtime accepted pre-existing task state")
+    assert captured["changed_files"] == files
+
+
 def test_openai_tool_use_exact_str_replace_protocol_patches_existing_file(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

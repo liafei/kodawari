@@ -25,6 +25,7 @@ from typing import Any, Optional
 
 
 _ENV_VAR = "WORKFLOW_CONTRACT_PREFLIGHT"
+_DISABLE_PREEXISTING_NEW_FILES_ENV = "WORKFLOW_DISABLE_PREEXISTING_NEW_FILE_ACCEPTANCE"
 _OFF_VALUES = {"0", "off", "false", "no", ""}
 _V1_1 = "contract_first.task_card.v1.1"
 _LARGE_FILE_LINE_THRESHOLD = 800
@@ -267,9 +268,12 @@ def _validate_file_presence(
     files_to_change: list[str],
     new_files: list[str],
     root: Path,
-) -> tuple[list[FilePreflightIssue], dict[str, Path]]:
+    allow_existing_new_files: bool = False,
+) -> tuple[list[FilePreflightIssue], list[FilePreflightIssue], dict[str, Path]]:
     issues: list[FilePreflightIssue] = []
+    warnings: list[FilePreflightIssue] = []
     resolved: dict[str, Path] = {}
+    allow_existing = allow_existing_new_files and _preexisting_new_file_acceptance_enabled()
     for rel in files_to_change:
         abs_path = _resolve_under_project_root(root, rel)
         if abs_path is None:
@@ -288,13 +292,25 @@ def _validate_file_presence(
         exists = abs_path.exists()
         if rel in new_files:
             if exists:
-                issues.append(
-                    FilePreflightIssue(
-                        kind="new_file_already_exists",
-                        path=rel,
-                        detail="declared as new_files but already exists; remove from new_files or rename the target",
+                if allow_existing:
+                    warnings.append(
+                        FilePreflightIssue(
+                            kind="new_file_already_exists_reused",
+                            path=rel,
+                            detail=(
+                                "declared as new_files but already exists; continuing because "
+                                "pre-existing task state acceptance is enabled"
+                            ),
+                        )
                     )
-                )
+                else:
+                    issues.append(
+                        FilePreflightIssue(
+                            kind="new_file_already_exists",
+                            path=rel,
+                            detail="declared as new_files but already exists; remove from new_files or rename the target",
+                        )
+                    )
         elif not exists:
             matches = _find_possible_matches(abs_path, root)
             issues.append(
@@ -308,7 +324,12 @@ def _validate_file_presence(
                     ),
                 )
             )
-    return issues, resolved
+    return issues, warnings, resolved
+
+
+def _preexisting_new_file_acceptance_enabled() -> bool:
+    raw = os.environ.get(_DISABLE_PREEXISTING_NEW_FILES_ENV, "")
+    return raw.strip().lower() not in {"1", "true", "yes", "on"}
 
 
 def _validate_verify_cmd(card: dict[str, Any], root: Path) -> list[FilePreflightIssue]:
@@ -544,6 +565,8 @@ def _is_v1_1_card(card: dict[str, Any]) -> bool:
 def run_file_preflight(
     card: dict[str, Any],
     project_root: Path,
+    *,
+    allow_existing_new_files: bool = False,
 ) -> FilePreflightReport:
     """Validate task-card executability against the working tree."""
     if not preflight_enabled():
@@ -560,8 +583,14 @@ def run_file_preflight(
     warnings: list[FilePreflightIssue] = []
 
     issues.extend(_validate_new_files_subset(files_to_change=files_to_change, new_files=new_files))
-    file_issues, resolved = _validate_file_presence(files_to_change=files_to_change, new_files=new_files, root=root)
+    file_issues, file_warnings, resolved = _validate_file_presence(
+        files_to_change=files_to_change,
+        new_files=new_files,
+        root=root,
+        allow_existing_new_files=allow_existing_new_files,
+    )
     issues.extend(file_issues)
+    warnings.extend(file_warnings)
 
     # v1 cards keep minimal preflight semantics for backward compatibility.
     if not _is_v1_1_card(card):

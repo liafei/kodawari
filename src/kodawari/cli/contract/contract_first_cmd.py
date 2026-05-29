@@ -605,6 +605,15 @@ def _task_run_preflight_next_action(reason: str) -> str:
     )
 
 
+def _task_run_allows_preexisting_new_files(args: argparse.Namespace, card: dict[str, Any]) -> bool:
+    backend = str(getattr(args, "executor_backend", "") or "").strip()
+    if backend != "openai_tool_use":
+        return False
+    if not [str(item).strip() for item in list(card.get("new_files") or []) if str(item).strip()]:
+        return False
+    return bool(str(card.get("verify_cmd") or "").strip())
+
+
 def _task_run_exit_code(result: dict[str, Any], *, strict_scope: bool) -> int:
     reason = str(result.get("reason") or "").upper()
     if reason in {
@@ -796,7 +805,11 @@ def _cmd_task_run(args: argparse.Namespace) -> int:
                 "provenance": _provenance("task-run", project_root=project_root, planning_dir=planning_dir),
             }
         )
-    file_preflight = run_file_preflight(card, project_root)
+    file_preflight = run_file_preflight(
+        card,
+        project_root,
+        allow_existing_new_files=_task_run_allows_preexisting_new_files(args, card),
+    )
     if file_preflight.blocked:
         issues_payload = [issue.to_dict() for issue in file_preflight.issues]
         warnings_payload = [warning.to_dict() for warning in file_preflight.warnings]

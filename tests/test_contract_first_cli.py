@@ -1107,6 +1107,64 @@ def test_task_run_surfaces_preflight_warnings_when_not_blocked(
     assert payload["file_preflight"]["warnings"][0]["kind"] == "large_file_symbol_map_deep_exempt"
 
 
+def test_task_run_openai_tool_use_accepts_preexisting_new_file_after_verify_gate(
+    tmp_path: Path,
+    capsys: Any,
+    monkeypatch: Any,
+) -> None:
+    parser = build_parser()
+    feature = "cf-task-run-preexisting-new-file"
+    planning_dir = tmp_path / "planning" / feature
+    planning_dir.mkdir(parents=True, exist_ok=True)
+    card = _task_card_payload(files_to_change=["tests/test_existing.py"])
+    card["new_files"] = ["tests/test_existing.py"]
+    card["verify_cmd"] = "python -m pytest tests/test_existing.py"
+    card_path = planning_dir / "TASK_CARD_T1.json"
+    card_path.write_text(json.dumps(card), encoding="utf-8")
+    _materialize_task_files(tmp_path, ["tests/test_existing.py"])
+
+    monkeypatch.setattr(
+        contract_first_cmd,
+        "_run_task_card",
+        lambda *_args, **_kwargs: {
+            "reason": "",
+            "execution_backend": "openai_tool_use",
+            "execution_backend_capabilities": {"backend": "openai_tool_use"},
+            "changed_files": ["tests/test_existing.py"],
+            "verify_check": {"status": "PASS", "verify_cmd": card["verify_cmd"], "summary": "ok"},
+            "execution_result": {
+                "backend": "openai_tool_use",
+                "backend_capabilities": {"backend": "openai_tool_use"},
+            },
+            "compliance_report": {"status": "PASS"},
+            "rounds": [],
+        },
+    )
+
+    rc, payload = _run_cli(
+        parser,
+        capsys,
+        [
+            "task-run",
+            "--project-root",
+            str(tmp_path),
+            "--feature",
+            feature,
+            "--card",
+            str(card_path),
+            "--strict-scope",
+            "--contract-mode",
+            "strict",
+            "--executor-backend",
+            "openai_tool_use",
+        ],
+    )
+
+    assert rc == 0
+    assert payload["status"] == "PASS"
+    assert payload["file_preflight"]["warnings"][0]["kind"] == "new_file_already_exists_reused"
+
+
 def test_task_run_returns_next_action_when_analyze_hits_cycle_limit(
     tmp_path: Path,
     capsys: Any,

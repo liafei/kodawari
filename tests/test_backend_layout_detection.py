@@ -126,6 +126,22 @@ class TestTaskGraphDetectProjectLayout:
         assert "backend" in layout["code_roots"]
         assert "app" in layout["code_roots"]
 
+    def test_flat_node_server_js_in_code_roots(self, tmp_path: Path) -> None:
+        _write(tmp_path / "package.json", '{"name": "flat-node"}')
+        _write(tmp_path / "server.js", "module.exports = {};\n")
+        layout = detect_project_layout(tmp_path)
+        assert layout["kind"] == "flat"
+        assert layout["code_roots"] == ["server.js"]
+
+    def test_project_model_flat_node_server_js_in_code_roots(self, tmp_path: Path) -> None:
+        _write(tmp_path / "package.json", '{"name": "flat-node"}')
+        _write(tmp_path / "server.js", "module.exports = {};\n")
+        _write(tmp_path / "tests" / "test-jobs-isolation.js", "console.log('ok');\n")
+        layout = pm_detect_project_layout(tmp_path, archetype="node_api")
+        assert layout["kind"] == "flat"
+        assert layout["code_roots"] == ["server.js"]
+        assert layout["test_roots"] == ["tests"]
+
 
 class TestDetectProjectProfile:
     """detect_project_profile() must return 'fastapi' for backend/main.py."""

@@ -1,0 +1,28 @@
+name: Kodawari Security
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1"
+
+jobs:
+  security:
+    runs-on: windows-latest
+    env:
+      GITLEAKS_VERSION: "8.24.3"
+      DETECT_SECRETS_VERSION: "1.5.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned scanners
+        shell: pwsh
+        run: |
+          go install github.com/gitleaks/gitleaks/v8@v$env:GITLEAKS_VERSION
+          python -m pip install detect-secrets==$env:DETECT_SECRETS_VERSION
+      - name: Run security scan
+        shell: pwsh
+        run: .\scripts\security_scan.ps1
+

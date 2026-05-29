@@ -19,6 +19,7 @@ from kodawari.autopilot.engine.gate_round import (
     _analyze_verify_stdout,
     _build_fix_round_msg,
     _reopen_for_fix_round,
+    _resolve_verify_check,
     _verify_analyzer_enabled,
 )
 
@@ -86,6 +87,38 @@ def test_analyzer_disabled_by_env(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_analyzer_enabled_by_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("WORKFLOW_VERIFY_ANALYZER", "1")
     assert _verify_analyzer_enabled() is True
+
+
+def test_resolve_verify_check_uses_task_card_verify_command(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: dict[str, Any] = {}
+
+    def fake_build_verify_check(**kwargs: Any) -> dict[str, Any]:
+        seen.update(kwargs)
+        return {"status": "PASS", "passed": True, "verify_cmd": kwargs["verify_cmd"]}
+
+    monkeypatch.setattr(
+        "kodawari.autopilot.engine.gate_round.build_verify_check",
+        fake_build_verify_check,
+    )
+    engine = SimpleNamespace(
+        config=SimpleNamespace(project_root=tmp_path, feature="feature", verify_cmd="pytest -q"),
+        state=SimpleNamespace(current_stage=None),
+        _resolve_post_execution_qa=lambda _runtime: {},
+        _implementation_verify_cmd=lambda: "node tests/test-agent-approval-handlers.js",
+    )
+    runtime = SimpleNamespace(
+        task_label="T2: handlers",
+        last_changed_files=["tests/test-agent-approval-handlers.js"],
+        pre_compact_payload={},
+    )
+
+    result = _resolve_verify_check(engine, runtime)
+
+    assert result["passed"] is True
+    assert seen["verify_cmd"] == "node tests/test-agent-approval-handlers.js"
 
 
 # ---------------------------------------------------------------------------

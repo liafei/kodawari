@@ -3,11 +3,11 @@
 Thin facade for canonical status entrypoint.
 
 ```bash
-workflowctl wf-status --project-root . --feature <feature>
+kodawari wf-status --project-root . --feature <feature>
 ```
 
 Canonical equivalent:
 
 ```bash
-workflowctl status --project-root . --feature <feature>
+kodawari status --project-root . --feature <feature>
 ```

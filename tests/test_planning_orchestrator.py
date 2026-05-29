@@ -849,15 +849,15 @@ class TestSplitTasks:
         tasks = [_task(files=["a.py", "b.py", "c.py", "d.py"])]
         result = _split_tasks_if_needed(tasks)
         assert len(result) == 2
-        assert result[0]["task_id"] == "T1a"
-        assert result[1]["task_id"] == "T1b"
+        assert result[0]["task_id"] == "T1_a"
+        assert result[1]["task_id"] == "T1_b"
         assert len(result[0]["files_to_change"]) == 3
         assert len(result[1]["files_to_change"]) == 1
 
     def test_split_preserves_dependency_chain(self) -> None:
         tasks = [_task("T1", files=["a.py", "b.py", "c.py", "d.py"])]
         result = _split_tasks_if_needed(tasks)
-        assert result[1]["depends_on"] == ["T1a"]
+        assert result[1]["depends_on"] == ["T1_a"]
 
     def test_split_new_files_stay_in_correct_chunk(self) -> None:
         tasks = [_task(files=["a.py", "b.py", "c.py", "d.py"], new_files=["d.py"])]
@@ -872,7 +872,7 @@ class TestSplitTasks:
         ]
         result = _split_tasks_if_needed(tasks)
         t2 = next(t for t in result if t["task_id"] == "T2")
-        assert "T1b" in t2["depends_on"]
+        assert "T1_b" in t2["depends_on"]
 
 
 # ---------------------------------------------------------------------------

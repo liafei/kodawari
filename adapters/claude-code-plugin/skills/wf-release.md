@@ -3,11 +3,11 @@
 Thin facade for canonical release entrypoint.
 
 ```bash
-workflowctl wf-release --project-root . --feature <feature>
+kodawari wf-release --project-root . --feature <feature>
 ```
 
 Canonical equivalent:
 
 ```bash
-workflowctl release --project-root . --feature <feature>
+kodawari release --project-root . --feature <feature>
 ```

@@ -114,6 +114,7 @@ ARCHETYPE_ALIASES = {
 }
 
 SURFACE_ORDER = ("backend", "frontend", "mobile_wrapper", "scripts_deploy", "workspace", "docs")
+FLAT_NODE_ENTRY_CANDIDATES = ("server.js", "server.mjs", "app.js", "app.mjs", "index.js", "index.mjs")
 
 
 def _clean_text(value: Any, default: str = "") -> str:
@@ -289,6 +290,7 @@ def detect_project_layout(project_root: Path, *, archetype: str) -> dict[str, An
     code_roots = list(layout.get("code_roots") or [])
     test_roots = list(layout.get("test_roots") or [])
     workspace_roots = list(layout.get("workspace_roots") or [])
+    flat_node_entry = ""
     if project_root.exists():
         detected_code = _existing_roots(
             project_root,
@@ -305,10 +307,14 @@ def detect_project_layout(project_root: Path, *, archetype: str) -> dict[str, An
                 "packages/web/src",
             ],
         )
+        if archetype == "node_api":
+            flat_node_entry = _flat_node_entry_file(project_root)
         detected_tests = _existing_roots(project_root, test_roots + ["tests", "test", "backend/tests", "web/tests", "frontend/tests", "packages/api/tests", "packages/web/tests"])
         detected_workspaces = _existing_roots(project_root, workspace_roots + ["packages"])
         if detected_code:
             code_roots = detected_code
+        elif flat_node_entry:
+            code_roots = [flat_node_entry]
         if detected_tests:
             test_roots = detected_tests
         if detected_workspaces:
@@ -316,6 +322,8 @@ def detect_project_layout(project_root: Path, *, archetype: str) -> dict[str, An
     kind = _clean_text(layout.get("kind"), default="mixed")
     if workspace_roots:
         kind = "monorepo"
+    elif flat_node_entry and code_roots == [flat_node_entry]:
+        kind = "flat"
     elif len(code_roots) == 1:
         kind = code_roots[0]
     elif len(code_roots) > 1:
@@ -326,6 +334,13 @@ def detect_project_layout(project_root: Path, *, archetype: str) -> dict[str, An
         "test_roots": test_roots,
         "workspace_roots": workspace_roots,
     }
+
+
+def _flat_node_entry_file(project_root: Path) -> str:
+    for candidate in FLAT_NODE_ENTRY_CANDIDATES:
+        if (project_root / candidate).is_file():
+            return candidate
+    return ""
 
 
 def detect_languages(project_root: Path, *, archetype: str) -> list[str]:

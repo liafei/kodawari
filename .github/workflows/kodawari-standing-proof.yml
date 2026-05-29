@@ -1,0 +1,39 @@
+name: Kodawari Standing Proof
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "47 2 * * 1"
+
+permissions:
+  actions: read
+
+jobs:
+  standing-proof:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Bootstrap
+        shell: pwsh
+        run: .\scripts\bootstrap_kodawari.ps1 -SkipPipUpgrade
+      - name: Fetch lane history
+        shell: pwsh
+        run: .\scripts\kodawari.ps1 lane-history-fetch --artifacts-root .\planning\lane_history --fail-on-empty
+      - name: Trend
+        shell: pwsh
+        run: .\scripts\kodawari.ps1 lane-trend --artifacts-root .\planning\lane_history --fail-on-block
+      - name: Summary
+        shell: pwsh
+        run: Get-Content planning/lane_weekly_trend.md | Out-File -Append $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kodawari-standing-proof
+          path: |
+            planning/lane_history_manifest.json
+            planning/lane_weekly_trend.json
+            planning/lane_weekly_trend.md
+            planning/lane_history
+

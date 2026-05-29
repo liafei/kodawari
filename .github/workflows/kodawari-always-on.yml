@@ -1,0 +1,46 @@
+name: Kodawari Always-On
+
+on:
+  workflow_dispatch:
+    inputs:
+      repeat:
+        default: "1"
+        required: false
+  schedule:
+    - cron: "11 2 * * *"
+
+jobs:
+  always-on:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Bootstrap
+        shell: pwsh
+        run: .\scripts\bootstrap_kodawari.ps1 -SkipPipUpgrade
+      - name: Gate
+        shell: pwsh
+        run: .\scripts\kodawari.ps1 gate --project-root . --path .\src --planning-dir .\planning\ci_repo_health_src --profile strict --fail-on-block
+      - name: Run lane
+        shell: pwsh
+        run: |
+          $repeat = "${{ inputs.repeat }}"
+          if (-not $repeat) { $repeat = "1" }
+          .\scripts\run_always_on_lane_repeat.ps1 -Repeat $repeat
+      - name: Summary
+        if: always()
+        shell: pwsh
+        run: Get-Content planning/lane_triage_always-on.md | Out-File -Append $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kodawari-always-on
+          path: |
+            planning/ci_repo_health_src/.gate_result.json
+            planning/ci_repo_health_src/GATE.md
+            planning/lane_stability_always-on.json
+            planning/lane_triage_always-on.json
+            planning/lane_triage_always-on.md
+

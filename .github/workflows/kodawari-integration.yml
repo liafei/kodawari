@@ -1,0 +1,51 @@
+name: Kodawari Integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      repeat:
+        default: "1"
+        required: false
+  schedule:
+    - cron: "29 2 * * *"
+
+jobs:
+  integration:
+    runs-on: windows-latest
+    env:
+      WORKFLOW_REVIEWER_API_KEY: ${{ secrets.WORKFLOW_REVIEWER_API_KEY }}
+      WORKFLOW_REVIEWER_BASE_URL: ${{ secrets.WORKFLOW_REVIEWER_BASE_URL }}
+      WORKFLOW_REVIEW_ENABLED: "1"
+      WORKFLOW_REVIEW_REQUIRED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Bootstrap
+        shell: pwsh
+        run: .\scripts\bootstrap_kodawari.ps1 -SkipPipUpgrade
+      - name: Gate
+        shell: pwsh
+        run: .\scripts\kodawari.ps1 gate --project-root . --path .\src --planning-dir .\planning\ci_repo_health_src --profile strict --fail-on-block
+      - name: Run lane
+        shell: pwsh
+        run: |
+          $repeat = "${{ inputs.repeat }}"
+          if (-not $repeat) { $repeat = "1" }
+          .\scripts\run_integration_lane_repeat.ps1 -Repeat $repeat -FailIfSkipped
+      - name: Summary
+        if: always()
+        shell: pwsh
+        run: Get-Content planning/lane_triage_integration.md | Out-File -Append $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kodawari-integration
+          path: |
+            planning/ci_repo_health_src/.gate_result.json
+            planning/ci_repo_health_src/GATE.md
+            planning/lane_stability_integration.json
+            planning/lane_triage_integration.json
+            planning/lane_triage_integration.md
+

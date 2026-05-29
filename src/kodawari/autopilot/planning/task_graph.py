@@ -14,6 +14,7 @@ from kodawari.source_of_truth import build_contract_coverage_hints, canonicalize
 
 SCHEMA_VERSION = "contract_first.task_graph.v1"
 LAYER_ORDER = ["schema", "repository", "service", "route", "frontend", "model", "util"]
+FLAT_NODE_ENTRY_CANDIDATES = ("server.js", "server.mjs", "app.js", "app.mjs", "index.js", "index.mjs")
 LAYER_CORE_CANDIDATES = {
     "schema": {
         "source": ["app/schemas.py", "backend/app/schemas.py", "backend/schemas.py", "backend/api/v1/schemas.py", "src/schema.py", "src/schemas.py"],
@@ -189,6 +190,12 @@ PROFILE_LAYER_CANDIDATES = {
                 "src/server.js",
                 "app/routes.ts",
                 "app/routes.js",
+                "server.js",
+                "server.mjs",
+                "app.js",
+                "app.mjs",
+                "index.js",
+                "index.mjs",
             ],
             "tests": [
                 "app/src/app/LegacyApp.test.tsx",
@@ -211,6 +218,12 @@ PROFILE_LAYER_CANDIDATES = {
                 "src/service.js",
                 "app/services.ts",
                 "app/services.js",
+                "server.js",
+                "server.mjs",
+                "app.js",
+                "app.mjs",
+                "index.js",
+                "index.mjs",
             ],
             "tests": [
                 "app/src/features/feed/FeedToolbar.test.tsx",
@@ -234,6 +247,12 @@ PROFILE_LAYER_CANDIDATES = {
                 "src/repositories.js",
                 "app/repository.ts",
                 "app/repository.js",
+                "server.js",
+                "server.mjs",
+                "app.js",
+                "app.mjs",
+                "index.js",
+                "index.mjs",
             ],
             "tests": [
                 "app/src/shared/api/httpClient.test.ts",
@@ -245,7 +264,20 @@ PROFILE_LAYER_CANDIDATES = {
             ],
         },
         "schema": {
-            "source": ["src/schema.ts", "src/schema.js", "src/schemas.ts", "src/schemas.js", "app/schema.ts", "app/schema.js"],
+            "source": [
+                "src/schema.ts",
+                "src/schema.js",
+                "src/schemas.ts",
+                "src/schemas.js",
+                "app/schema.ts",
+                "app/schema.js",
+                "server.js",
+                "server.mjs",
+                "app.js",
+                "app.mjs",
+                "index.js",
+                "index.mjs",
+            ],
             "tests": ["tests/schema.test.ts", "tests/schema.test.js"],
         },
     },
@@ -333,6 +365,9 @@ def detect_project_layout(project_root: Path | None) -> dict[str, Any]:
     elif len(code_roots) == 1:
         kind = code_roots[0]
     elif not code_roots:
+        flat_node_entry = _flat_node_entry_file(project_root)
+        if flat_node_entry:
+            code_roots.append(flat_node_entry)
         kind = "flat"
     return {
         "kind": kind,
@@ -340,6 +375,15 @@ def detect_project_layout(project_root: Path | None) -> dict[str, Any]:
         "test_roots": test_roots or ["tests"],
         "workspace_roots": workspace_roots,
     }
+
+
+def _flat_node_entry_file(project_root: Path) -> str:
+    if not (project_root / "package.json").exists():
+        return ""
+    for candidate in FLAT_NODE_ENTRY_CANDIDATES:
+        if (project_root / candidate).is_file():
+            return candidate
+    return ""
 
 
 def detect_project_profile(project_root: Path | None, requested_profile: str = "auto") -> str:
@@ -484,10 +528,39 @@ def _existing_test_fallback(project_root: Path | None, layout: dict[str, Any], s
                 f"{root}/test_api.py",
                 f"{root}/{stem}.test.ts",
                 f"{root}/api.test.ts",
+                f"{root}/{stem}.test.js",
+                f"{root}/api.test.js",
             ]
         )
     existing = _existing_paths(project_root, fallback_candidates)
     return existing[0] if existing else ""
+
+
+def _discover_existing_test_path(project_root: Path | None, layout: dict[str, Any]) -> str:
+    if project_root is None:
+        return ""
+    allowed_suffixes = {".py", ".ts", ".tsx", ".js", ".jsx", ".mjs"}
+    roots = [str(item).strip().replace("\\", "/") for item in list(layout.get("test_roots") or []) if str(item).strip()]
+    if not roots and (project_root / "tests").exists():
+        roots = ["tests"]
+    for root in roots:
+        resolved_root = project_root / root
+        if not resolved_root.exists() or not resolved_root.is_dir():
+            continue
+        matches = sorted(
+            path
+            for path in resolved_root.rglob("*")
+            if path.is_file()
+            and path.suffix.lower() in allowed_suffixes
+            and (
+                path.name.lower().startswith("test")
+                or ".test." in path.name.lower()
+                or ".spec." in path.name.lower()
+            )
+        )
+        if matches:
+            return matches[0].relative_to(project_root).as_posix()
+    return ""
 
 
 def _select_test_path(
@@ -509,6 +582,9 @@ def _select_test_path(
     fallback = _existing_test_fallback(project_root, layout, source_path)
     if fallback:
         return fallback
+    discovered = _discover_existing_test_path(project_root, layout)
+    if discovered:
+        return discovered
     default_test = f"tests/test_{Path(source_path).stem}.py"
     if project_root is not None and (project_root / "tests" / "test_api.py").exists():
         if layer in {"schema", "repository", "service", "route", "model"}:

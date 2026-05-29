@@ -14,6 +14,12 @@ SRC = ROOT / "src"
 
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
+existing_pythonpath = os.environ.get("PYTHONPATH", "")
+pythonpath_parts = [part for part in existing_pythonpath.split(os.pathsep) if part]
+for required_path in (str(SRC), str(ROOT)):
+    if required_path not in pythonpath_parts:
+        pythonpath_parts.insert(0, required_path)
+os.environ["PYTHONPATH"] = os.pathsep.join(pythonpath_parts)
 
 # Ensure rootdir is on sys.path so tests._helpers is importable as a package.
 if str(ROOT) not in sys.path:
@@ -72,7 +78,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int | pytest.ExitC
 
 @pytest.fixture(autouse=True)
 def clean_env_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
-    """Restore the working directory after every test.
+    """Restore process-global cwd and workflow env vars after every test.
 
     Rationale
     ---------
@@ -81,8 +87,10 @@ def clean_env_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     when they are run in a different order.  With ``pytest-random-order``
     enabled, any such cwd leak becomes a flaky-test root cause.
 
-    ``monkeypatch`` already handles ``monkeypatch.setenv / delenv`` reverts
-    automatically; this fixture adds the complementary cwd guarantee.
+    ``monkeypatch`` handles ``monkeypatch.setenv / delenv`` reverts, but a few
+    integration-style tests intentionally exercise direct dotenv loading into
+    ``os.environ``.  Snapshot the workflow-scoped env too so one test cannot
+    turn on real review for later simulate-mode tests.
 
     Invariants
     ----------
@@ -94,10 +102,21 @@ def clean_env_state(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     * Only env vars and cwd are guarded — both are naturally reversible
       without risking import-graph corruption.
     """
+    guarded_prefixes = ("WORKFLOW_", "KODAWARI_")
     original_cwd = Path.cwd()
+    original_env = {
+        key: value
+        for key, value in os.environ.items()
+        if key.startswith(guarded_prefixes)
+    }
     try:
         yield
     finally:
+        for key in list(os.environ):
+            if key.startswith(guarded_prefixes) and key not in original_env:
+                os.environ.pop(key, None)
+        for key, value in original_env.items():
+            os.environ[key] = value
         try:
             os.chdir(original_cwd)
         except OSError:

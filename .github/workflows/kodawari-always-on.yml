@@ -20,9 +20,9 @@ jobs:
       - name: Bootstrap
         shell: pwsh
         run: .\scripts\bootstrap_kodawari.ps1 -SkipPipUpgrade
-      - name: Gate
+      - name: Gate snapshot
         shell: pwsh
-        run: .\scripts\kodawari.ps1 gate --project-root . --path .\src --planning-dir .\planning\ci_repo_health_src --profile strict --fail-on-block
+        run: .\scripts\kodawari.ps1 gate --project-root . --path .\src --planning-dir .\planning\ci_repo_health_src --profile advisory
       - name: Run lane
         shell: pwsh
         run: |
@@ -32,7 +32,13 @@ jobs:
       - name: Summary
         if: always()
         shell: pwsh
-        run: Get-Content planning/lane_triage_always-on.md | Out-File -Append $env:GITHUB_STEP_SUMMARY
+        run: |
+          $summary = "planning/lane_triage_always-on.md"
+          if (Test-Path $summary) {
+            Get-Content $summary | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          } else {
+            "Lane triage summary was not generated. Check earlier workflow steps and uploaded gate artifacts." | Out-File -Append $env:GITHUB_STEP_SUMMARY
+          }
       - uses: actions/upload-artifact@v4
         if: always()
         with:

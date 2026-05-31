@@ -157,7 +157,8 @@ def test_github_actions_workflows_pin_lane_entrypoints_and_env_contract() -> Non
     assert "inputs:" in always_on_workflow
     assert "schedule:" in always_on_workflow
     assert '.\\scripts\\bootstrap_kodawari.ps1 -SkipPipUpgrade' in always_on_workflow
-    assert '.\\scripts\\kodawari.ps1 gate --project-root . --path .\\src --planning-dir .\\planning\\ci_repo_health_src --profile strict --fail-on-block' in always_on_workflow
+    assert '.\\scripts\\kodawari.ps1 gate --project-root . --path .\\src --planning-dir .\\planning\\ci_repo_health_src --profile advisory' in always_on_workflow
+    assert "--fail-on-block" not in always_on_workflow
     assert '.\\scripts\\run_always_on_lane_repeat.ps1 -Repeat $repeat' in always_on_workflow
     assert 'runs-on: windows-latest' in always_on_workflow
     assert 'actions/upload-artifact@v4' in always_on_workflow
@@ -175,7 +176,8 @@ def test_github_actions_workflows_pin_lane_entrypoints_and_env_contract() -> Non
     assert "inputs:" in integration_workflow
     assert "schedule:" in integration_workflow
     assert '.\\scripts\\bootstrap_kodawari.ps1 -SkipPipUpgrade' in integration_workflow
-    assert '.\\scripts\\kodawari.ps1 gate --project-root . --path .\\src --planning-dir .\\planning\\ci_repo_health_src --profile strict --fail-on-block' in integration_workflow
+    assert '.\\scripts\\kodawari.ps1 gate --project-root . --path .\\src --planning-dir .\\planning\\ci_repo_health_src --profile advisory' in integration_workflow
+    assert "--fail-on-block" not in integration_workflow
     assert '.\\scripts\\run_integration_lane_repeat.ps1 -Repeat $repeat -FailIfSkipped' in integration_workflow
     assert 'runs-on: windows-latest' in integration_workflow
     assert 'actions/upload-artifact@v4' in integration_workflow

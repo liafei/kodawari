@@ -29,7 +29,7 @@ jobs:
         run: .\scripts\bootstrap_kodawari.ps1 -SkipPipUpgrade
       - name: Install test dependencies
         shell: pwsh
-        run: .\.workflow_runtime\local-env\.venv\Scripts\python.exe -m pip install pytest
+        run: .\.workflow_runtime\local-env\.venv\Scripts\python.exe -m pip install -e ".[dev]"
       - name: Gate snapshot
         shell: pwsh
         run: .\scripts\kodawari.ps1 gate --project-root . --path .\src --planning-dir .\planning\ci_repo_health_src --profile advisory

@@ -15,6 +15,8 @@ jobs:
     env:
       WORKFLOW_REVIEWER_API_KEY: ${{ secrets.WORKFLOW_REVIEWER_API_KEY }}
       WORKFLOW_REVIEWER_BASE_URL: ${{ secrets.WORKFLOW_REVIEWER_BASE_URL }}
+      WORKFLOW_REVIEWER_MODEL: ${{ secrets.WORKFLOW_REVIEWER_MODEL }}
+      WORKFLOW_REVIEWER_API_FORMAT: ${{ secrets.WORKFLOW_REVIEWER_API_FORMAT }}
       WORKFLOW_REVIEW_ENABLED: "1"
       WORKFLOW_REVIEW_REQUIRED: "1"
     steps:
@@ -25,6 +27,9 @@ jobs:
       - name: Bootstrap
         shell: pwsh
         run: .\scripts\bootstrap_kodawari.ps1 -SkipPipUpgrade
+      - name: Install test dependencies
+        shell: pwsh
+        run: .\.workflow_runtime\local-env\.venv\Scripts\python.exe -m pip install pytest
       - name: Gate snapshot
         shell: pwsh
         run: .\scripts\kodawari.ps1 gate --project-root . --path .\src --planning-dir .\planning\ci_repo_health_src --profile advisory

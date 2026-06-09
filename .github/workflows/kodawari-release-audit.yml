@@ -1,6 +1,7 @@
 name: Kodawari Release Audit
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "release/**"

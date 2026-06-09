@@ -23,7 +23,7 @@ jobs:
         run: .\scripts\bootstrap_kodawari.ps1 -SkipPipUpgrade
       - name: Fetch lane history
         shell: pwsh
-        run: .\scripts\kodawari.ps1 --help-all lane-history-fetch --repo $env:GITHUB_REPOSITORY --output-dir .\planning\lane_history --fail-on-empty
+        run: .\scripts\kodawari.ps1 --help-all lane-history-fetch --repo $env:GITHUB_REPOSITORY --artifact-prefix kodawari-always-on --artifact-prefix kodawari-integration --output-dir .\planning\lane_history --fail-on-empty
       - name: Trend
         shell: pwsh
         run: .\scripts\kodawari.ps1 --help-all lane-trend --artifacts-root .\planning\lane_history --fail-on-block

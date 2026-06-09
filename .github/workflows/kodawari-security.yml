@@ -24,5 +24,5 @@ jobs:
           python -m pip install detect-secrets==$env:DETECT_SECRETS_VERSION
       - name: Run security scan
         shell: pwsh
-        run: .\scripts\security_scan.ps1
+        run: .\scripts\security_scan.ps1 -SkipGitleaksVersionCheck
 

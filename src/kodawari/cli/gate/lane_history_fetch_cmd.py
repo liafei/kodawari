@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 import re
 from typing import Any
-from urllib import request
+from urllib import error, parse, request
 import zipfile
 
 from kodawari.cli.contract.command_contract import build_error_payload, normalize_mutating_payload
@@ -63,10 +63,40 @@ def _load_json_url(url: str, token: str) -> dict[str, Any]:
     return payload
 
 
+class _NoRedirectHandler(request.HTTPRedirectHandler):
+    def redirect_request(
+        self,
+        req: request.Request,
+        fp: Any,
+        code: int,
+        msg: str,
+        headers: Any,
+        newurl: str,
+    ) -> None:
+        return None
+
+
 def _download_bytes_url(url: str, token: str) -> bytes:
     req = request.Request(url, headers=_github_headers(token))
-    with request.urlopen(req, timeout=60) as response:
-        return response.read()
+    opener = request.build_opener(_NoRedirectHandler)
+    try:
+        with opener.open(req, timeout=30) as response:
+            return response.read()
+    except error.HTTPError as exc:
+        if exc.code not in {301, 302, 303, 307, 308}:
+            raise
+        location = str(exc.headers.get("Location") or "").strip()
+        if not location:
+            raise
+        redirected_url = parse.urljoin(url, location)
+        redirected_req = request.Request(
+            redirected_url,
+            headers={
+                "User-Agent": "kodawari-lane-history-fetch",
+            },
+        )
+        with request.urlopen(redirected_req, timeout=60) as response:
+            return response.read()
 
 
 def _sanitize_dir_name(name: str, artifact_id: int) -> str:

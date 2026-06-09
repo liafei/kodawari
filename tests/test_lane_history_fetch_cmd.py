@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from urllib import request
 import zipfile
 
 from kodawari.cli import lane_history_fetch_cmd
@@ -127,6 +128,53 @@ def test_cli_lane_history_fetch_downloads_recent_matching_artifacts(
     assert manifest_path.exists()
     assert (history_root / "kodawari-always-on-stability-9001-101" / "lane_triage_always-on.json").exists()
     assert (history_root / "kodawari-integration-stability-9002-102" / "lane_triage_integration.json").exists()
+
+
+def test_download_bytes_url_strips_auth_on_redirect(monkeypatch: Any) -> None:
+    calls: list[tuple[str, str, dict[str, str]]] = []
+
+    class FakeResponse:
+        def __enter__(self) -> FakeResponse:
+            return self
+
+        def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
+            return None
+
+        def read(self) -> bytes:
+            return b"archive-bytes"
+
+    class FakeOpener:
+        def open(self, req: request.Request, timeout: int) -> FakeResponse:
+            calls.append(("api", req.full_url, dict(req.header_items())))
+            raise lane_history_fetch_cmd.error.HTTPError(
+                req.full_url,
+                302,
+                "Found",
+                {"Location": "https://artifact-store.example.test/archive.zip"},
+                None,
+            )
+
+    def fake_build_opener(handler: Any) -> FakeOpener:
+        assert issubclass(handler, lane_history_fetch_cmd._NoRedirectHandler)
+        return FakeOpener()
+
+    def fake_urlopen(req: request.Request, timeout: int) -> FakeResponse:
+        calls.append(("artifact", req.full_url, dict(req.header_items())))
+        return FakeResponse()
+
+    monkeypatch.setattr(lane_history_fetch_cmd.request, "build_opener", fake_build_opener)
+    monkeypatch.setattr(lane_history_fetch_cmd.request, "urlopen", fake_urlopen)
+
+    payload = lane_history_fetch_cmd._download_bytes_url(
+        "https://api.github.com/repos/owner/repo/actions/artifacts/101/zip",
+        "test-token",
+    )
+
+    assert payload == b"archive-bytes"
+    assert calls[0][2]["Authorization"] == "Bearer test-token"
+    assert calls[1][0] == "artifact"
+    assert calls[1][1] == "https://artifact-store.example.test/archive.zip"
+    assert "Authorization" not in calls[1][2]
 
 
 def test_cli_lane_history_fetch_blocks_when_no_matching_artifacts(

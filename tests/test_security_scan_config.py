@@ -17,7 +17,7 @@ def test_security_scan_pins_scanners_and_uses_runtime_reports() -> None:
     assert ".workflow_runtime\\security" in script
     assert 'GITLEAKS_VERSION: "8.24.3"' in workflow
     assert 'DETECT_SECRETS_VERSION: "1.5.0"' in workflow
-    assert "github.com/gitleaks/gitleaks/v8@v$env:GITLEAKS_VERSION" in workflow
+    assert "github.com/zricethezav/gitleaks/v8@v$env:GITLEAKS_VERSION" in workflow
     assert "detect-secrets==$env:DETECT_SECRETS_VERSION" in workflow
     assert "^\\.workflow_runtime/" in gitleaks_config
     assert "[\\\\/]" in script

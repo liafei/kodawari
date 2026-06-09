@@ -11,6 +11,8 @@ permissions:
 jobs:
   standing-proof:
     runs-on: windows-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,10 +23,10 @@ jobs:
         run: .\scripts\bootstrap_kodawari.ps1 -SkipPipUpgrade
       - name: Fetch lane history
         shell: pwsh
-        run: .\scripts\kodawari.ps1 lane-history-fetch --artifacts-root .\planning\lane_history --fail-on-empty
+        run: .\scripts\kodawari.ps1 --help-all lane-history-fetch --repo $env:GITHUB_REPOSITORY --output-dir .\planning\lane_history --fail-on-empty
       - name: Trend
         shell: pwsh
-        run: .\scripts\kodawari.ps1 lane-trend --artifacts-root .\planning\lane_history --fail-on-block
+        run: .\scripts\kodawari.ps1 --help-all lane-trend --artifacts-root .\planning\lane_history --fail-on-block
       - name: Summary
         shell: pwsh
         run: Get-Content planning/lane_weekly_trend.md | Out-File -Append $env:GITHUB_STEP_SUMMARY

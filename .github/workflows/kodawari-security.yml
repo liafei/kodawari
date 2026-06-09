@@ -20,7 +20,7 @@ jobs:
       - name: Install pinned scanners
         shell: pwsh
         run: |
-          go install github.com/gitleaks/gitleaks/v8@v$env:GITLEAKS_VERSION
+          go install github.com/zricethezav/gitleaks/v8@v$env:GITLEAKS_VERSION
           python -m pip install detect-secrets==$env:DETECT_SECRETS_VERSION
       - name: Run security scan
         shell: pwsh

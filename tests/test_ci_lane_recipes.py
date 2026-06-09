@@ -199,8 +199,8 @@ def test_github_actions_workflows_pin_lane_entrypoints_and_env_contract() -> Non
     assert "schedule:" in standing_proof_workflow
     assert 'actions: read' in standing_proof_workflow
     assert '.\\scripts\\bootstrap_kodawari.ps1 -SkipPipUpgrade' in standing_proof_workflow
-    assert '.\\scripts\\kodawari.ps1 lane-history-fetch' in standing_proof_workflow
-    assert '.\\scripts\\kodawari.ps1 lane-trend' in standing_proof_workflow
+    assert '.\\scripts\\kodawari.ps1 --help-all lane-history-fetch' in standing_proof_workflow
+    assert '.\\scripts\\kodawari.ps1 --help-all lane-trend' in standing_proof_workflow
     assert '--artifacts-root .\\planning\\lane_history' in standing_proof_workflow
     assert '--fail-on-empty' in standing_proof_workflow
     assert '--fail-on-block' in standing_proof_workflow

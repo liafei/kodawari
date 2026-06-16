@@ -131,8 +131,6 @@ module → which backends actually use it.
 
 ## Related documents
 
-- [CLAUDE.md (workspace root)](../../CLAUDE.md) — working agreement and
-  blocking rules
-- [newsapp/docs/开发交付现状.md](../../newsapp/docs/开发交付现状.md) — feature
-  delivery status
-- [newsapp/docs/任务计划_v1.1.md](../../newsapp/docs/任务计划_v1.1.md) — task plan
+- [CLAUDE.md](../CLAUDE.md) — working agreement and blocking rules
+- [PIPELINE_DEEP_DIVE.md](PIPELINE_DEEP_DIVE.md) — full internal flow, stage by stage
+- [README.md](README.md) — documentation index

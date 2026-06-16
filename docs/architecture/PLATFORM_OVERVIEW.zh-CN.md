@@ -1,4 +1,4 @@
-﻿# 一、平台现状、架构与兼容总览
+﻿# 平台现状、架构与兼容总览
 
 ## 1. 文档目的
 
@@ -10,8 +10,6 @@
 - `autopilot` 与 `status` 的正式角色
 - 兼容入口、历史吸收与当前边界
 - 当前证明基线与剩余差距
-
-原始历史文档已完整归档到：`e:\code_rebuild\temp\kodawari_文档归档_2026-03-27_094833`。
 
 ## 2. 平台当前定位
 
@@ -118,10 +116,6 @@
 - `WORKFLOW_CLAUDE_SOURCE_INDEX.md`
 - `WORKFLOW_CLAUDE_TEST_DAMAGE_INDEX.md`
 - `WORKFLOW_CLAUDE_ABSORPTION_PRIORITY.md`
-
-这些原始文档已经迁移到：
-
-- `e:\code_rebuild\temp\kodawari_文档归档_2026-03-27_094833`
 
 ## 6. 主链与 canonical truth
 

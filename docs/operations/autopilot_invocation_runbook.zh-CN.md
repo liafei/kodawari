@@ -16,17 +16,17 @@
 ### 1.1 推荐：claude_code 执行 + codex 审查（本次验证）
 
 ```bash
-cd e:/code_rebuild/newsapp
+cd /path/to/your/project
 WORKFLOW_PLANNER_TIMEOUT=600 \
 WORKFLOW_CLAUDE_AUTH_MODE=host \
 WORKFLOW_CODEX_AUTH_MODE=host \
 WORKFLOW_PLANNING_MAX_ROUNDS=3 \
-WORKFLOW_REVIEWER_CODEX_EXECUTABLE="C:/Users/liafei/AppData/Roaming/npm/codex.cmd" \
+WORKFLOW_REVIEWER_CODEX_EXECUTABLE="$(which codex)" \
   kodawari autopilot \
-    --project-root e:/code_rebuild/newsapp \
+    --project-root /path/to/your/project \
     --feature p1c-google-trends-rss \
     --task "实现 Google Trends RSS 外部榜后端" \
-    --prd newsapp/planning/p1c-google-trends-rss/PRD_SLICE.md \
+    --prd planning/p1c-google-trends-rss/PRD_SLICE.md \
     --executor-backend claude_code \
     --tier lite \
     --task-cycle
@@ -51,7 +51,7 @@ WORKFLOW_REVIEWER_CODEX_EXECUTABLE="C:/Users/liafei/AppData/Roaming/npm/codex.cm
 | `WORKFLOW_CLAUDE_AUTH_MODE` | host | host | 把 `~/.claude/.credentials.json` 同步到隔离 HOME |
 | `WORKFLOW_CODEX_AUTH_MODE` | host | host | 把 `~/.codex/auth.json` 同步到隔离 HOME |
 | `WORKFLOW_PLANNING_MAX_ROUNDS` | 3 | 3 | planner↔reviewer 互审轮次上限（**不受 `--tier` 影响**） |
-| `WORKFLOW_REVIEWER_CODEX_EXECUTABLE` | `codex`（PATH 查找） | `C:/Users/liafei/AppData/Roaming/npm/codex.cmd` | Windows 下 npm 全局包不一定在 subprocess PATH，需显式指定 |
+| `WORKFLOW_REVIEWER_CODEX_EXECUTABLE` | `codex`（PATH 查找） | `%APPDATA%/npm/codex.cmd` | Windows 下 npm 全局包不一定在 subprocess PATH，需显式指定 |
 
 ### 1.4 models.yaml 正确写法（`.claude/workflow/models.yaml`）
 
@@ -82,8 +82,8 @@ review_enabled: true
 
 | 症状 | 根因 | 排查命令 |
 |------|------|---------|
-| `codex_cli exited 1, stderr: auth error` | 隔离 CODEX_HOME 里没同步到 `auth.json` | `ls e:/code_rebuild/tmp_codex_home/.codex/auth.json` |
-| `model 'gpt-5.3-codex' not available` | `models.yaml` 的 executor_model 与用户 codex 账号实际可用模型不一致 | `grep ^model C:/Users/liafei/.codex/config.toml` |
+| `codex_cli exited 1, stderr: auth error` | 隔离 CODEX_HOME 里没同步到 `auth.json` | `ls <isolated-codex-home>/.codex/auth.json` |
+| `model 'gpt-5.3-codex' not available` | `models.yaml` 的 executor_model 与用户 codex 账号实际可用模型不一致 | `grep ^model ~/.codex/config.toml` |
 | 启动后卡 >10 分钟不返回 | codex CLI 在等待 tokens 刷新；host auth.json 里 tokens 过期 | 检查 `~/.codex/auth.json` 的 `last_refresh` |
 | `CODEX_CLI_MISSING` | codex 不在 PATH 或 `WORKFLOW_CODEX_EXECUTABLE` 指错 | `where codex` |
 | 沙箱化失败 `EPERM` | isolated workspace 创建失败，常见于 OneDrive/杀软盘 | 切到非托管目录 |
@@ -103,13 +103,13 @@ review_enabled: true
 codex --help
 
 # 2. 确认 host auth.json 存在且未过期
-python -c "import json; d=json.load(open('C:/Users/liafei/.codex/auth.json','r',encoding='utf-8')); print('tokens present:', 'tokens' in d)"
+python -c "import json, os; d=json.load(open(os.path.expanduser('~/.codex/auth.json'),'r',encoding='utf-8')); print('tokens present:', 'tokens' in d)"
 
 # 3. 确认 executor_models 映射正确
-cat newsapp/.claude/workflow/models.yaml
+cat .claude/workflow/models.yaml
 
 # 4. 删隔离 HOME 强制重建
-rm -rf e:/code_rebuild/tmp_codex_home/.codex/auth.json
+rm -rf <isolated-codex-home>/.codex/auth.json
 
 # 5. 小范围 dry-run
 WORKFLOW_CODEX_AUTH_MODE=host kodawari autopilot --feature X --tier lite --executor-backend codex_cli ...

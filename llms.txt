@@ -1,0 +1,42 @@
+# kodawari
+
+> kodawari is a command-line tool that turns a written feature spec into
+> finished, tested code. You give it a markdown file describing a feature; it
+> plans the work, writes the code into your project, runs your tests for real,
+> has a second AI model review and auto-fix the result, and hands you a
+> ready-to-ship feature to approve — like a small autonomous engineering team
+> (planner, reviewer, executor) that works from a spec instead of a chat.
+
+It coordinates three independent LLM roles — a planner, a reviewer, and an
+executor — and is a headless, contract-first alternative to interactive
+AI pair-programmers like Claude Code, Cursor, Aider, and OpenHands. The three
+LLM roles are configured independently, so you can mix providers (GPT, Claude,
+Gemini, local models). Greenfield is first-class: an empty directory plus a PRD
+produces a scaffolded, tested feature. Every stage writes a JSON-schema-validated
+artifact, and under `KODAWARI_REVIEW_ENABLED=1` silent-pass fallback paths fail
+closed. Python 3.11+, MIT licensed, public beta (v0.1.2).
+
+## Start here
+
+- [README](https://github.com/liafei/kodawari/blob/main/README.md): Project overview, quick start, and how it works
+- [Quickstart](https://github.com/liafei/kodawari/blob/main/docs/QUICKSTART.md): First run from a fresh checkout
+- [User Guide](https://github.com/liafei/kodawari/blob/main/docs/USER_GUIDE.md): Install, run a feature, read status, interpret failures
+- [Writing a PRD](https://github.com/liafei/kodawari/blob/main/docs/WRITING_PRD.md): How to write a spec kodawari understands
+
+## Understand the pipeline
+
+- [Pipeline Deep Dive](https://github.com/liafei/kodawari/blob/main/docs/PIPELINE_DEEP_DIVE.md): Every stage and safety mechanism inside `work-all`, with code locations
+- [Capability Map](https://github.com/liafei/kodawari/blob/main/docs/CAPABILITY_MAP.md): Which backend supports which feature
+
+## Reference
+
+- [Stability Policy](https://github.com/liafei/kodawari/blob/main/STABILITY.md): Public API surface, CLI tiers, artifact schema, deprecation policy
+- [Environment Variables](https://github.com/liafei/kodawari/blob/main/docs/contracts/ENV_VAR_REFERENCE.md): Every env var, what it does, and its default
+- [Operator Runbook](https://github.com/liafei/kodawari/blob/main/docs/OPERATOR_RUNBOOK.md): Error codes, troubleshooting, multi-slice diagnostics
+- [Changelog](https://github.com/liafei/kodawari/blob/main/CHANGELOG.md): Release history
+
+## Optional
+
+- [Documentation index](https://github.com/liafei/kodawari/blob/main/docs/README.md): Full doc set, including 中文 docs
+- [Example: hello-bookmark](https://github.com/liafei/kodawari/tree/main/examples/hello-bookmark): 5-minute end-to-end demo (empty dir to tested FastAPI service)
+- [Contributing](https://github.com/liafei/kodawari/blob/main/CONTRIBUTING.md): Ground rules for pull requests

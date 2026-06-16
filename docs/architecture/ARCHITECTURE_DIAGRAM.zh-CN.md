@@ -1,11 +1,11 @@
-# 三、中文架构流程图
+# 中文架构流程图
 
 ## 1. 为什么之前看起来“没有了”
 
 旧现场里的 `workflow_flowchart*.mmd` 与早期双仓口径已经不再可靠。
 当前主线已经收束为“`kodawari` 单仓承载 planning + runtime + review + gate + status”，所以仓内之前只保留了一张最小英文图，避免继续传播过时结构。
 
-本文件把现行主线重新画成中文版本，和当前 `docs/一、平台现状、架构与兼容总览.md`、`docs/二、运行操作、门禁规则与后续路线.md` 对齐。
+本文件把现行主线重新画成中文版本，和当前 [`docs/architecture/PLATFORM_OVERVIEW.zh-CN.md`](PLATFORM_OVERVIEW.zh-CN.md)、[`docs/operations/RUNBOOK_AND_GATES.zh-CN.md`](../operations/RUNBOOK_AND_GATES.zh-CN.md) 对齐。
 
 ## 2. 中文主架构图
 

@@ -1,6 +1,6 @@
 # kodawari
 
-**AI coding autopilot for autonomous software delivery — turn a PRD or feature spec into shipped, tested code with multi-agent planning, real pytest, peer review, and strict no-fake-run guarantees.**
+**Turn a written feature spec into finished, tested code — automatically.**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -9,36 +9,38 @@
 
 [English](README.md) · [中文](README.zh-CN.md) · [Deep dive](docs/PIPELINE_DEEP_DIVE.md) · [Quickstart](docs/QUICKSTART.md) · [Examples](examples/)
 
-> *拘り (kodawari)* — the Japanese concept of obsessive attention to detail, the
-> craftsman's refusal to accept anything less than what the work demands.
+kodawari is a command-line tool for AI-driven software development. You hand it
+a markdown file describing the feature you want built. It plans the work, writes
+the code into your project, runs your tests for real, has a second AI model
+review the result, fixes whatever the review flags, and hands you back a
+ready-to-ship feature to approve.
 
-**kodawari** is an open-source autopilot for AI-driven software development.
-It coordinates multiple LLMs — a **planner** drafting the design, an
-independent **reviewer** auditing it, and an **executor** writing the code —
-to turn a PRD or feature spec into shipped, tested code with full audit-able
-artifacts at every step.
+Think of it as an autonomous engineering team that works from a **spec** instead
+of a **chat**: one model plans the work, an independent one reviews it, and a
+third writes the code — proving every step with real `pytest` runs and a review
+trail, not a "looks done to me."
 
-If you've used **Claude Code**, **Cursor**, **Aider**, or **OpenHands** and
-wanted a more rigorous, workflow-driven alternative — one that enforces real
-`pytest` runs and real peer review instead of single-model self-approval —
-kodawari is built for that.
+```text
+PRD.md ──► plan → write code → run pytest → review → auto-fix ──► you approve → ship
+```
 
-**Key concepts**: AI pair programming · agentic coding · AI coding agent ·
-multi-agent software development · multi-LLM orchestration · PRD-driven
-development · contract-first artifacts · greenfield project scaffolding ·
-test-driven AI development · Claude Code / Cursor / Aider / OpenHands
-workflow alternative
+**Concretely:** give it [a spec like this](examples/hello-bookmark/PRD.md)
+(goals, scope, data contract, layers, tests) and from an *empty directory* you
+get a working FastAPI service — `app/` code, `tests/` with passing pytest, and a
+full JSON audit trail — stopped at a human ship/no-ship decision. That
+[hello-bookmark example](examples/hello-bookmark/) is the 5-minute version; for
+larger features you split the spec into **slices** and kodawari ships them one by
+one, breaking each into a dependency-ordered task graph.
 
-You write a markdown describing the feature you want — a PRD, a task spec,
-a feature brief, an internal RFC, whatever your team writes. kodawari reads
-it, plans the implementation, writes the code, runs the tests, and hands
-back a feature ready for your ship-or-not decision.
+> **What counts as a spec?** A PRD, a task spec, a feature brief, an internal
+> RFC — whatever your team writes. The intake parser reads **structure** (goals,
+> scope, data contract, layers, acceptance criteria), not the filename. Pass it
+> with `--prd <path>`. The 5-section recipe is in
+> [docs/WRITING_PRD.md](docs/WRITING_PRD.md).
 
-> The CLI takes the file via `--prd <path>` or `--requirements-file <path>`
-> (either flag works). Filename and document type don't matter — the intake
-> parser looks at **structure**: goals, scope, data contract, layers,
-> acceptance criteria. The 5-section recipe is in
-> [`docs/WRITING_PRD.md`](docs/WRITING_PRD.md).
+> *拘り (kodawari)* is Japanese for an obsessive, craftsman-like attention to
+> detail — the refusal to accept anything less than what the work demands. The
+> tool is named for the standard it tries to hold code to.
 
 ---
 
@@ -179,6 +181,54 @@ opinionated and process-heavy on purpose.
 
 ---
 
+## ❓ FAQ
+
+**What is kodawari?**
+kodawari is a command-line tool that turns a written feature spec into finished,
+tested code. You give it a markdown file; it plans the work, writes the code,
+runs your tests, has a second AI model review the result, and hands you a
+ready-to-ship feature to approve — like a small autonomous engineering team
+(planner, reviewer, executor) working from a spec instead of a chat.
+
+**How is kodawari different from Claude Code, Cursor, or Aider?**
+Those are interactive, single-model pair-programmers. kodawari is a headless,
+PRD-driven pipeline with separate planner / reviewer / executor models and a
+contract-first artifact chain, so "verify passed" provably means tests ran and
+a second model approved the code.
+
+**Does kodawari actually run my tests, or just claim to?**
+It runs them for real. Under `KODAWARI_REVIEW_ENABLED=1`, every verify command,
+reviewer call, and gate decision is anchored to a real artifact, and silent-pass
+fallback paths fail closed. That's the no-fake-run policy.
+
+**Which LLMs and providers does it support?**
+Each role is configured independently in `.claude/workflow/models.yaml`. You can
+mix providers — a cheap planner, a premium reviewer, and a local executor is a
+common setup. GPT, Claude, Gemini, and local models all work.
+
+**Do I need a special PRD format?**
+No. The intake parser reads structure — goals, scope, data contract, layers,
+acceptance criteria — not the filename or document type. The 5-section recipe is
+in [WRITING_PRD.md](docs/WRITING_PRD.md).
+
+**Can it handle large or complex projects?**
+Yes — that's what the structure is for. A big spec is split into ordered slices,
+each broken into a dependency-aware task graph of focused tasks, with complexity
+tiers (lite / standard / heavy) that scale the planning and review rigor to the
+job. Bigger features cost more time and tokens, and the PRD intake heuristic is
+currently most confident on web-service shapes (FastAPI-style) — other shapes
+work but may need `kodawari init --archetype <name>`.
+
+**Can it start from an empty directory?**
+Yes. Greenfield is first-class: an empty dir plus a PRD produces a scaffolded,
+tested feature. See [examples/hello-bookmark/](examples/hello-bookmark/).
+
+**Is it production-ready?**
+It's a public beta (v0.1.2), validated end-to-end on a greenfield FastAPI
+service. Production-strict mode is the recommended config for non-toy projects.
+
+---
+
 ## 📚 Documentation
 
 | | |
@@ -190,7 +240,9 @@ opinionated and process-heavy on purpose.
 | [OPERATOR_RUNBOOK](docs/OPERATOR_RUNBOOK.md) | Error codes, troubleshooting, multi-slice diagnostics |
 | [CAPABILITY_MAP](docs/CAPABILITY_MAP.md) | Capability × backend wiring matrix |
 | [contracts/ENV_VAR_REFERENCE](docs/contracts/ENV_VAR_REFERENCE.md) | Every env var, what it does, defaults |
+| [STABILITY](STABILITY.md) | Public API surface, CLI tiers, artifact schema, deprecation policy |
 | [examples/hello-bookmark/](examples/hello-bookmark/) | 5-minute walkable end-to-end demo |
+| [docs/](docs/README.md) | Full documentation index |
 
 中文补充文档：[README.zh-CN.md](README.zh-CN.md) · [WRITING_PRD.zh-CN.md](docs/WRITING_PRD.zh-CN.md) · [PIPELINE_DEEP_DIVE.zh-CN.md](docs/PIPELINE_DEEP_DIVE.zh-CN.md) · [架构总览.zh-CN.md](docs/architecture/PLATFORM_OVERVIEW.zh-CN.md)
 

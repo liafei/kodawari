@@ -2,7 +2,7 @@
 
 # kodawari
 
-**自主软件交付的 autopilot —— PRD 进、shipped feature 出，每一步都有严格的 no-fake-run 保证。**
+**把一份写好的功能说明，自动变成写完、测过的代码。**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -13,16 +13,33 @@
 
 </div>
 
-> *拘り*（kodawari）—— 日语「对细节的执着、匠人不愿妥协的精神」。
+kodawari 是一个命令行工具，用于 AI 驱动的软件开发。你给它一个 markdown 文件，
+描述你要做的功能；它负责规划、把代码写进你的项目、真跑你的测试、再让另一个
+AI 模型审查结果、按审查意见自动返工，最后交给你一个可以直接上线的功能，等你
+拍板。
 
-你写一份 markdown 描述要做的 feature——PRD、任务规格、需求说明、内部 RFC，
-你团队怎么叫都行。kodawari 读它，规划实现，写代码，跑测试，最后把一个
-等你拍板 ship/不 ship 的 feature 交还给你。
+可以把它理解成一个「按说明书干活、而不是陪你聊天」的自动工程团队：一个模型规
+划、另一个独立审查、第三个写代码——每一步都用真实的 `pytest` 运行和一条完整的
+审查记录来证明它真做了，不是「我觉得差不多了」。
 
-> CLI 用 `--prd <path>` 或者 `--requirements-file <path>` 传入文件（两个 flag
-> 都行）。文件名和文档类型不重要，intake 解析器看的是**结构**：目标 / 范围
-> / 数据契约 / 分层 / acceptance criteria。5 段模板见
-> [`docs/WRITING_PRD.zh-CN.md`](docs/WRITING_PRD.zh-CN.md)。
+```text
+PRD.md ──► 规划 → 写代码 → 跑 pytest → 审查 → 自动返工 ──► 你拍板 → 上线
+```
+
+**具体来说**：给它[一份这样的说明](examples/hello-bookmark/PRD.md)（目标 / 范围 /
+数据契约 / 分层 / 测试），从一个空目录，你会得到一个能跑的 FastAPI 服务——`app/`
+代码、`tests/` 里能过的 pytest、一整套 JSON 审查记录——并停在「上不上线」的人工
+决策点。这个 [hello-bookmark 例子](examples/hello-bookmark/) 是 5 分钟版；更大的
+功能就把 spec 切成 **slice**，kodawari 逐个交付，每个 slice 再拆成带依赖顺序的
+task graph。
+
+> **什么算"说明"？** PRD、任务规格、需求说明、内部 RFC——你团队怎么叫都行。
+> intake 解析器看的是**结构**（目标 / 范围 / 数据契约 / 分层 / acceptance
+> criteria），不看文件名。用 `--prd <path>` 传入。5 段模板见
+> [docs/WRITING_PRD.zh-CN.md](docs/WRITING_PRD.zh-CN.md)。
+
+> *拘り*（kodawari）—— 日语「对细节的执着、匠人不愿妥协的精神」。工具以此命名，
+> 是想把代码也守在这个标准上。
 
 ---
 
@@ -149,6 +166,51 @@ PRD（`## Slice 1:` … `## Slice 2:` 标记）自动逐 slice 跑，支持 resu
 
 ---
 
+## ❓ 常见问题
+
+**kodawari 是什么？**
+kodawari 是一个命令行工具，把一份写好的功能说明变成写完、测过的代码。你给它一
+个 markdown 文件；它规划、写代码、真跑你的测试、让第二个 AI 模型审查结果，最后
+交给你一个可以直接上线的功能等你拍板——像一个按说明书干活、而不是陪你聊天的自
+动工程团队（一个规划、一个审查、一个写码）。
+
+**kodawari 和 Claude Code / Cursor / Aider 有什么区别？**
+那些是交互式、单模型的结对编程工具。kodawari 是 headless、PRD 驱动的流水线，
+planner / reviewer / executor 分离，配契约优先的 artifact 链——所以 "verify
+passed" 可证明地意味着测试真跑了、而且有第二个模型批准了代码。
+
+**kodawari 是真跑测试还是只是声称跑了？**
+真跑。在 `KODAWARI_REVIEW_ENABLED=1` 下，每个 verify 命令、reviewer 调用、gate
+决策都锚定到真 artifact，silent-pass fallback 路径全部 fail-closed。这就是
+no-fake-run policy。
+
+**支持哪些 LLM 和厂商？**
+三个角色在 `.claude/workflow/models.yaml` 里各自独立配置，可以混搭——便宜
+planner + 高端 reviewer + 本地 executor 是常见组合。GPT、Claude、Gemini、本地
+模型都能用。
+
+**需要特定的 PRD 格式吗？**
+不需要。intake 解析器看的是**结构**——目标 / 范围 / 数据契约 / 分层 /
+acceptance criteria，而不是文件名或文档类型。5 段模板见
+[WRITING_PRD.zh-CN.md](docs/WRITING_PRD.zh-CN.md)。
+
+**能跑复杂工程吗？**
+能——这套结构就是为此设计的。一份大 spec 会被切成有序的 slice，每个 slice 再拆
+成带依赖关系的 task graph（一组聚焦的小 task），并用复杂度 tier（lite / standard
+/ heavy）按工程大小调节规划和审查的严格度。工程越大、耗时和 token 越多；目前
+intake 启发式对 Web 服务形态（FastAPI 类）最有把握，其它形态也能跑，可能需要
+`kodawari init --archetype <name>`。
+
+**能从空目录起步吗？**
+能。Greenfield 是一等公民：空目录 + 一份 PRD → 带脚手架、带测试的 feature。见
+[examples/hello-bookmark/](examples/hello-bookmark/)。
+
+**能用于生产吗？**
+当前是 public beta（v0.1.2），已在 greenfield FastAPI 服务上完整端到端验证。非
+玩具项目推荐用 production-strict mode。
+
+---
+
 ## 📚 文档
 
 | | |
@@ -160,7 +222,9 @@ PRD（`## Slice 1:` … `## Slice 2:` 标记）自动逐 slice 跑，支持 resu
 | [OPERATOR_RUNBOOK](docs/OPERATOR_RUNBOOK.md) | 错码索引、故障排查、多 slice 诊断 |
 | [CAPABILITY_MAP](docs/CAPABILITY_MAP.md) | capability × backend 兼容矩阵 |
 | [contracts/ENV_VAR_REFERENCE](docs/contracts/ENV_VAR_REFERENCE.md) | 所有 env var 完整索引 |
+| [STABILITY](STABILITY.md) | 公共 API、CLI 分层、artifact schema、废弃策略 |
 | [examples/hello-bookmark/](examples/hello-bookmark/) | 5 分钟可走完的端到端例子 |
+| [docs/](docs/README.md) | 完整文档索引 |
 
 ---
 

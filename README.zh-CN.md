@@ -2,7 +2,7 @@
 
 # kodawari
 
-**把一份写好的功能说明，自动变成写完、测过的代码。**
+**用 markdown 写一份功能说明，拿回测过、审过、能直接上线的代码——全自动。**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -13,14 +13,16 @@
 
 </div>
 
-kodawari 是一个命令行工具，用于 AI 驱动的软件开发。你给它一个 markdown 文件，
-描述你要做的功能；它负责规划、把代码写进你的项目、真跑你的测试、再让另一个
-AI 模型审查结果、按审查意见自动返工，最后交给你一个可以直接上线的功能，等你
-拍板。
+kodawari 把一份写好的说明变成一个做完的功能：它规划、把代码写进你的项目、跑你
+的测试、让第二个 AI 模型审查结果、按审查返工，最后停在「上不上线」等你拍板。
+**是流水线，不是聊天。**
 
-可以把它理解成一个「按说明书干活、而不是陪你聊天」的自动工程团队：一个模型规
-划、另一个独立审查、第三个写代码——每一步都用真实的 `pytest` 运行和一条完整的
-审查记录来证明它真做了，不是「我觉得差不多了」。
+**它哪里不一样**
+
+- **三个 LLM，分工不同** — 一个规划、一个审查、一个写码。没有模型给自己打分。
+- **它没法假装通过** — 「测试通过」=`pytest` 真跑了且返回 0；「审过」=第二个模型真批了。不存在偷偷自评放行。
+- **全程留痕** — spec → 计划 → task graph → task card，每一步都是可审计的、校验过的 JSON。
+- **它会跨运行学习** — 记住反复出现的失败，把教训带到以后，甚至带到你别的项目。
 
 ```text
 PRD.md ──► 规划 → 写代码 → 跑 pytest → 审查 → 自动返工 ──► 你拍板 → 上线
@@ -88,23 +90,21 @@ PEER_REVIEW 回 IMPLEMENT 的虚线箭头是**自愈 fix-loop**：reviewer 标 `
 
 ### 平实说一遍这 5 步
 
-**1. 读取 + 切片。** spec 里有 `## Slice 1:` `## Slice 2:` 标记 → 按顺序处
-理；没有 → 当一个整体。
+**1. 读取 + 切片。** spec 里有 `## Slice 1:`、`## Slice 2:` … 标记 → 按顺序逐个
+交付；没有就当一个整体。
 
-**2. 规划。** planner 模型起草实现方案（要改哪些文件、写什么测试、契约细
-节）。reviewer 模型审计方案，有 must_fix 就退回 planner 修。直到两边收敛。
+**2. 规划。** planner 起草实现方案——要改哪些文件、写什么测试、数据契约。
+reviewer 审这份方案，有 must_fix 就打回去改，两边来回直到方案站得住。
 
-**3. 拆 task。** 通过的方案被拆成 5–7 个小 task，每个 task 改一组聚焦的文
-件。task 之间的依赖关系记录在 graph 里。
+**3. 拆成 task。** 通过的方案被拆成 5–7 个小 task，每个只动一组聚焦的文件，并记
+录依赖关系，好按正确顺序跑。
 
-**4. 执行。** 按依赖顺序，每个 task 跑完整循环：executor 模型用受限
-tool-use 协议写代码（read / str_replace / write_new_file）→ pytest 真跑 →
-代码质量 gate 真跑 → reviewer 模型审实现。reviewer 有 must_fix 就让
-executor 重写、verify + review 重跑。批准 → 下一个 task。
+**4. 每个 task：写代码、跑测试、过审。** 每个 task：executor 写代码 → `pytest`
+真跑 → 代码质量门禁真跑 → reviewer 审结果。被标 must_fix 就打回重做重审。通过
+→ 下一个 task。
 
-**5. 上线门。** 所有 task 过了，kodawari 把变更打包成 review bundle，停在
-手动 ship 决策。你跑 `kodawari decide --action accept` ship 或 `--action
-reject` 停。
+**5. 停下来等你拍板。** 所有 task 都过了，kodawari 把改动打包，然后停住——不会自
+己上线。你跑 `kodawari decide --action accept` 上线，或 `--action reject` 停。
 
 多 slice spec 的话，**步骤 2–4 每个 slice 跑一遍**，步骤 5 在所有 slice 完
 成后跑一次。
@@ -129,6 +129,9 @@ PRD（`## Slice 1:` … `## Slice 2:` 标记）自动逐 slice 跑，支持 resu
 
 ## 🤔 为什么用 kodawari？
 
+大多数 AI 编码工具，要么陪你聊（Claude Code、Cursor），要么能自主跑但要你信结
+果（Devin、OpenHands）。kodawari 是自主的，**而且会证明结果**。
+
 | 工具 | 形态 | kodawari 差别 |
 |---|---|---|
 | **Claude Code / Codex CLI** | 交互式 REPL，单 model 单轮 | 多模型角色分离 + 契约优先 artifact 链。5 轮聊天 ≠ 一份 PRD 驱动的完整交付 |
@@ -148,21 +151,38 @@ PRD（`## Slice 1:` … `## Slice 2:` 标记）自动逐 slice 跑，支持 resu
 
 ---
 
-## 🛡️ 你能拿到的保证
+## 🛠️ 你能得到什么
 
-- **No-fake-run policy**：`KODAWARI_REVIEW_ENABLED=1` 下，每个 reviewer
-  调用、verify 命令、gate 决策都锚定到真 artifact。silent-pass fallback
-  路径全部 fail-closed。
-- **契约优先 artifact 链**：PRD → INTAKE → ARCHITECTURE_PLAN → TASK_GRAPH
-  → TASK_CARD，端到端 JSON-schema 校验。
-- **Greenfield 一等公民**：空目录 + PRD → 已交付 feature。`SCAFFOLD_MANIFEST`
-  锁定 archetype，planner 不会在近空 filesystem 上重新推断。
-- **Wall-clock 看门狗**：`--max-wall-clock-seconds`（默认 3600）超时写
-  `ABORT_REPORT.json` 并 exit 124（POSIX 超时约定）。
-- **闭包追溯的依赖跳过**：task 失败时下游 task 报 `blocked_by:
-  [<failed-ancestor>]` 而非直接的 missing dep。
-- **多 slice PRD**：写 `## Slice N: <title>`（或 `## 切片 N:`、`## Phase N:`、
-  `## Part N:`）autopilot 自动按顺序跑每个 slice，支持 resume。
+**它会证明自己真做了——没法假装通过**
+
+- **没有假运行。** 每一句「测试通过 / 审查通过 / 门禁通过」都绑定到磁盘上一份真实记录。验证不了就直接失败，而不是悄悄放行。
+- **真跑、且按范围跑 `pytest`。** 只跑这个 task 改动到的文件相关的测试——而且在重试前能区分「过时的断言」和「真正的回归」。
+- **代码质量门禁。** 每个 task 都跑一遍静态红线检查（复杂度、嵌套、分层边界），分 advisory / blocking / strict 三档。
+- **独立 peer review + 自愈循环。** 第二个模型审查每个 task；`must_fix` 项会把它打回重写，直到通过或撞 `max_cycles`。
+
+**它会从每次运行里学习**
+
+- **跨运行记忆（instincts）。** 它会学习反复出现的失败模式——某个后端老超时、某处 auth/setup 配错——并把这些教训喂进之后的 prompt。撑过几次运行的稳定模式会被提升到一个机器级共享库（`~/.kodawari/instincts.json`），于是在一个项目里学到的教训，你其它 kodawari 项目也能直接受益。
+- **自修复（self-repair）。** 运行失败后，`kodawari self-repair` 会读取产物、给出高置信度的修复建议，可以再拉起一个 autopilot 去应用，并把真正有效的修复记成可复用的教训。（是你主动调的命令，不是偷偷自动改。）
+- **上下文自动压缩。** 随着一次运行堆积越来越多错误和审查意见，它会自动去重、压缩这些历史，让模型保持一个聚焦、受预算约束的视图，而不是把整段对话一路拖下去。
+
+**它扛得住真实世界的各种状况**
+
+- **卡死恢复。** 检测到 executor 只读不写卡住时，强制它动手（写/删）。
+- **回滚检查点。** 在有风险的步骤前给文件拍快照，失败就还原。
+- **升级 + 重规划。** 真遇到死局（task 太大、模型搞不定、门禁反复挂）时停下来问你，并带一个针对该失败类型的重规划 prompt。
+- **墙钟看门狗。** 整轮有时间预算（默认 1 小时），超时干净中止并写报告。
+- **阻塞溯源。** 一个 task 挂了，下游 task 会告诉你是被哪个失败的上游挡住。
+- **权限护栏。** 受保护文件和范围规则会拦掉越界写入。
+
+**它适配真实项目**
+
+- **Greenfield 一等公民**——空目录 + spec → 带脚手架、带测试的项目。
+- **多 slice 规格**——大功能切成有序 slice（`## Slice N:`、`## Phase N:` …），逐个交付，可续跑。
+- **复杂度分级**——自动按 lite / standard / heavy 调节循环轮次和审查严格度。
+- **执行引擎可选**——`codex_cli`、`claude_code`、`openai_tool_use`，或你自己的 CLI；每个角色可混搭不同厂商。
+- **契约优先产物**——spec → intake → plan → task-graph → task-card，全是可审计的、校验过的 JSON。
+- **人工上线门**——停在 `AWAITING_DECISION`；你跑 `kodawari decide` 才上线。
 
 ---
 
@@ -188,6 +208,12 @@ no-fake-run policy。
 三个角色在 `.claude/workflow/models.yaml` 里各自独立配置，可以混搭——便宜
 planner + 高端 reviewer + 本地 executor 是常见组合。GPT、Claude、Gemini、本地
 模型都能用。
+
+**它会在多次运行之间记忆吗？**
+会。kodawari 有一个 learned-instincts 库：记录反复出现的失败模式（超时、auth/
+setup 配错），把教训喂进之后的运行。撑过几次运行的稳定模式会被提升到机器级共享
+库（`~/.kodawari/instincts.json`），于是一个项目里学到的教训，你别的项目也能受
+益。也可以跑 `kodawari self-repair` 分析失败的运行并给出修复建议。
 
 **需要特定的 PRD 格式吗？**
 不需要。intake 解析器看的是**结构**——目标 / 范围 / 数据契约 / 分层 /

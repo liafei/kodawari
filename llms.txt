@@ -1,20 +1,22 @@
 # kodawari
 
-> kodawari is a command-line tool that turns a written feature spec into
-> finished, tested code. You give it a markdown file describing a feature; it
-> plans the work, writes the code into your project, runs your tests for real,
-> has a second AI model review and auto-fix the result, and hands you a
-> ready-to-ship feature to approve — like a small autonomous engineering team
-> (planner, reviewer, executor) that works from a spec instead of a chat.
+> kodawari turns a written spec into finished, tested code — autonomously, and it
+> proves every step instead of just claiming it. You give it a markdown file
+> describing a feature; it plans, writes the code, runs your tests, has a second
+> AI model review the result, fixes what review flags, and stops at a ship/no-ship
+> decision. A pipeline, not a chat.
 
-It coordinates three independent LLM roles — a planner, a reviewer, and an
-executor — and is a headless, contract-first alternative to interactive
-AI pair-programmers like Claude Code, Cursor, Aider, and OpenHands. The three
-LLM roles are configured independently, so you can mix providers (GPT, Claude,
-Gemini, local models). Greenfield is first-class: an empty directory plus a PRD
-produces a scaffolded, tested feature. Every stage writes a JSON-schema-validated
-artifact, and under `KODAWARI_REVIEW_ENABLED=1` silent-pass fallback paths fail
-closed. Python 3.11+, MIT licensed, public beta (v0.1.2).
+What makes it different: three separate LLM roles (planner, reviewer, executor)
+so no model grades its own work; a strict no-fake-run guarantee (under
+`KODAWARI_REVIEW_ENABLED=1`, "tests passed" means pytest really ran and a second
+model really approved — unverifiable steps fail closed); a contract-first audit
+trail where every step is a JSON-schema-validated artifact; and cross-run memory
+that learns recurring failure patterns and shares portable lessons across
+projects via `~/.kodawari/instincts.json`. Greenfield is first-class (empty dir +
+spec → scaffolded, tested feature); large specs split into resumable slices. It's
+a headless, CI-friendly alternative to interactive AI pair-programmers like Claude
+Code, Cursor, Aider, and OpenHands. Python 3.11+, MIT licensed, public beta
+(v0.1.2).
 
 ## Start here
 

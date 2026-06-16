@@ -1,6 +1,6 @@
 # kodawari
 
-**Turn a written feature spec into finished, tested code — automatically.**
+**Describe a feature in markdown. Get back tested, reviewed, ship-ready code — autonomously.**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -9,16 +9,17 @@
 
 [English](README.md) · [中文](README.zh-CN.md) · [Deep dive](docs/PIPELINE_DEEP_DIVE.md) · [Quickstart](docs/QUICKSTART.md) · [Examples](examples/)
 
-kodawari is a command-line tool for AI-driven software development. You hand it
-a markdown file describing the feature you want built. It plans the work, writes
-the code into your project, runs your tests for real, has a second AI model
-review the result, fixes whatever the review flags, and hands you back a
-ready-to-ship feature to approve.
+kodawari turns a written spec into a finished feature: it plans the work, writes
+the code into your project, runs your tests, has a second AI model review the
+result, fixes what review flags, and stops at a ship/no-ship decision for you.
+**A pipeline, not a chat.**
 
-Think of it as an autonomous engineering team that works from a **spec** instead
-of a **chat**: one model plans the work, an independent one reviews it, and a
-third writes the code — proving every step with real `pytest` runs and a review
-trail, not a "looks done to me."
+**What makes it different**
+
+- **Three LLMs, separate jobs** — one plans, one reviews, one writes. No model grades its own homework.
+- **It can't fake a pass** — "tests passed" means `pytest` really ran and returned 0; "reviewed" means a second model really approved. No silent self-approval.
+- **Every step is on the record** — spec → plan → task graph → task card, each a validated JSON artifact you can audit.
+- **It learns across runs** — remembers recurring failures and carries the lessons forward, even into your other projects.
 
 ```text
 PRD.md ──► plan → write code → run pytest → review → auto-fix ──► you approve → ship
@@ -93,29 +94,26 @@ approved or `max_cycles` hit.
 
 ### The 5 steps in plain language
 
-**1. Read + slice.** If the spec has `## Slice 1:` `## Slice 2:` markers,
-kodawari processes them in sequence. Otherwise it treats the whole spec
-as one unit.
+**1. Read & split.** If the spec is marked into `## Slice 1:`, `## Slice 2:` …,
+kodawari ships the slices in order; otherwise it treats the whole spec as one
+unit.
 
-**2. Plan.** A planner model drafts the implementation (files to change,
-tests to write, contract details). A reviewer model audits the plan. If
-the reviewer raises must-fix issues, the planner revises. Loop until
-they converge.
+**2. Plan.** The planner drafts the implementation — which files to change, which
+tests to write, the data contract. The reviewer audits that plan and can send it
+back with must-fix issues. They loop until the plan holds up.
 
-**3. Generate task graph.** The approved plan becomes 5–7 small tasks,
-each focused on a tight group of files. Dependencies between tasks are
-recorded.
+**3. Break into tasks.** The approved plan becomes 5–7 small tasks, each touching
+a tight group of files, with dependencies recorded so they run in the right
+order.
 
-**4. Execute.** For each task in dependency order, the full cycle runs:
-the executor model writes code via constrained tool-use (read /
-str_replace / write_new_file) → pytest actually runs → the code-quality
-gate actually runs → a reviewer model audits the implementation. If the
-reviewer flags must-fix, the executor re-implements and verify + review
-re-run. Approved → next task.
+**4. Build, test, review — per task.** For each task: the executor writes the
+code, `pytest` actually runs, the code-quality gate actually runs, and the
+reviewer audits the result. Anything flagged must-fix sends the task back to be
+re-done and re-checked. Approved → on to the next task.
 
-**5. Ship gate.** After all tasks pass, kodawari packages the changes
-into a review bundle and stops at a manual ship decision. Run `kodawari
-decide --action accept` to ship or `--action reject` to halt.
+**5. Stop for your call.** Once every task passes, kodawari bundles the changes
+and stops — nothing ships on its own. Run `kodawari decide --action accept` to
+ship, or `--action reject` to halt.
 
 For multi-slice specs, **steps 2–4 run once per slice**; step 5 runs
 once across all slices at the end.
@@ -141,6 +139,10 @@ location — see [docs/PIPELINE_DEEP_DIVE.md](docs/PIPELINE_DEEP_DIVE.md).
 
 ## 🤔 Why kodawari?
 
+Most AI coding tools either chat with you (Claude Code, Cursor) or run on their
+own but ask you to trust the result (Devin, OpenHands). kodawari is autonomous
+*and* proves the result.
+
 | Tool | Posture | What kodawari does differently |
 |---|---|---|
 | **Claude Code / Codex CLI** | Interactive REPL with one model per turn | Multi-model role separation + contract-first artifact chain. 5 chat sessions ≠ one planned PRD-driven feature. |
@@ -160,24 +162,38 @@ opinionated and process-heavy on purpose.
 
 ---
 
-## 🛡️ What you get
+## 🛠️ What you get
 
-- **No-fake-run policy**: under `KODAWARI_REVIEW_ENABLED=1`, every reviewer
-  call, verify command, and gate decision is anchored to a real artifact.
-  Silent-pass fallback paths fail closed.
-- **Contract-first artifact chain**: PRD → INTAKE → ARCHITECTURE_PLAN →
-  TASK_GRAPH → TASK_CARD is JSON-schema validated end to end.
-- **Greenfield first-class**: empty directory + PRD → shipped feature. A
-  `SCAFFOLD_MANIFEST` locks the chosen archetype so the planner doesn't
-  re-infer it on the near-empty filesystem.
-- **Wall-clock watchdog**: `--max-wall-clock-seconds` (default 3600)
-  writes `ABORT_REPORT.json` and exits 124 (POSIX timeout convention).
-- **Closure-tracing dependency skips**: when a task fails, downstream
-  tasks report `blocked_by: [<failed-ancestor>]` rather than just the
-  immediate unsatisfied dep.
-- **Multi-slice PRDs**: declare `## Slice N: <title>` (or `## 切片 N:`,
-  `## Phase N:`, `## Part N:`) and the autopilot ships the slices
-  sequentially with resume support.
+**It proves its work — it can't fake a pass**
+
+- **No fake runs.** Every "tests passed / review approved / gate passed" is bound to a real artifact on disk. If something can't be verified, it fails instead of quietly passing.
+- **Real, scoped `pytest`.** Runs the actual tests for the files a task touched — and tells stale assertions apart from genuine breakages before retrying.
+- **Code-quality gate.** A static redline check (complexity, nesting, layer boundaries) runs every task, in advisory / blocking / strict profiles.
+- **Independent peer review + self-healing loop.** A second model reviews each task; `must_fix` items send it back to re-implement until approved or `max_cycles`.
+
+**It learns from every run**
+
+- **Cross-run memory (instincts).** It learns recurring failure patterns — a backend that keeps timing out, an auth/setup misconfig — and feeds those lessons into later prompts. Patterns that hold up across several runs are promoted to a machine-wide store (`~/.kodawari/instincts.json`), so a lesson learned in one project helps all your kodawari projects.
+- **Self-repair.** After a failed run, `kodawari self-repair` reads the artifacts, proposes high-confidence fixes, can spawn a fresh autopilot to apply them, and records what worked as a reusable lesson. (Opt-in command, not a silent auto-fixer.)
+- **Context auto-compaction.** As a run piles up errors and review findings, it automatically dedupes and compresses that history so the models keep a focused, budget-bounded view instead of dragging the whole transcript forward.
+
+**It survives real-world failures**
+
+- **Stall recovery.** Detects when the executor is reading without writing and forces it to act.
+- **Rollback checkpoints.** Snapshots files before risky steps; restores on failure.
+- **Escalation + replan.** On a real deadlock (task too big, model can't, repeated gate fails) it stops and asks you, with a failure-specific replanning prompt.
+- **Wall-clock watchdog.** A whole-run time budget (default 1h) aborts cleanly with a report.
+- **Blocked-by tracing.** When a task fails, downstream tasks report which failed ancestor blocks them.
+- **Permission guard.** Protected-file and scope rules block out-of-bounds writes.
+
+**It fits real projects**
+
+- **Greenfield first-class** — empty dir + spec → scaffolded, tested project.
+- **Multi-slice specs** — big features split into ordered slices (`## Slice N:`, `## Phase N:`, …), shipped one by one, resumable.
+- **Complexity tiers** — auto lite / standard / heavy scaling of cycles and review rigor.
+- **Pick your engine** — `codex_cli`, `claude_code`, `openai_tool_use`, or your own CLI; mix providers per role.
+- **Contract-first artifacts** — spec → intake → plan → task-graph → task-card, all validated JSON you can audit.
+- **Human ship gate** — stops at `AWAITING_DECISION`; you run `kodawari decide` to ship.
 
 ---
 
@@ -205,6 +221,14 @@ fallback paths fail closed. That's the no-fake-run policy.
 Each role is configured independently in `.claude/workflow/models.yaml`. You can
 mix providers — a cheap planner, a premium reviewer, and a local executor is a
 common setup. GPT, Claude, Gemini, and local models all work.
+
+**Does it remember anything between runs?**
+Yes. kodawari keeps a learned-instincts store: it records recurring failure
+patterns (timeouts, auth/setup misconfigs) and feeds the lessons back into later
+runs. Patterns that hold up across several runs are promoted to a machine-wide
+store (`~/.kodawari/instincts.json`), so a lesson learned in one project helps
+your others. You can also run `kodawari self-repair` to analyze a failed run and
+propose fixes.
 
 **Do I need a special PRD format?**
 No. The intake parser reads structure — goals, scope, data contract, layers,

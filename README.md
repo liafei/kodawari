@@ -69,17 +69,17 @@ generated entirely by the autopilot).
 
 ```mermaid
 flowchart LR
-    PRD([📄 PRD.md]) --> TIER[Stage 0-1<br/>complexity tier<br/>+ slice detection]
-    TIER --> PLAN[Stage 2<br/>planner ↔ reviewer<br/>multi-round revision]
-    PLAN --> GRAPH[Stage 3-4<br/>architecture + scaffold<br/>+ TASK_GRAPH]
-    GRAPH --> D[DESIGN]
-    D --> I[IMPLEMENT]
-    I --> V[VERIFY<br/>real pytest]
-    V --> R[RULES_GATE<br/>code redline]
-    R --> RV[PEER_REVIEW<br/>impl_reviewer]
-    RV -.must_fix.-> I
-    RV --> BUNDLE[Stage 6-7<br/>review bundle<br/>+ release gate]
-    BUNDLE -->|kodawari decide| SHIP([🚀 Ship])
+    PRD([📄 your spec]) --> TIER[size it up<br/>+ split into slices]
+    TIER --> PLAN[plan ↔ review<br/>until it holds up]
+    PLAN --> GRAPH[design + scaffold<br/>+ task list]
+    GRAPH --> D[pick next task]
+    D --> I[write code]
+    I --> V[run tests<br/>real pytest]
+    V --> R[quality gate]
+    R --> RV[peer review]
+    RV -.must fix.-> I
+    RV --> BUNDLE[bundle for<br/>your sign-off]
+    BUNDLE -->|you decide| SHIP([🚀 ship])
 
     style PRD fill:#e8f4f8,stroke:#5c8aa0
     style SHIP fill:#d4f4dd,stroke:#3a8050
@@ -87,10 +87,9 @@ flowchart LR
     style RV fill:#fff4d6,stroke:#c89432
 ```
 
-The dotted arrow from PEER_REVIEW back to IMPLEMENT is the
-self-healing fix-loop: when the reviewer flags `must_fix` items, the
-executor re-implements and verify + review re-run. Loop continues until
-approved or `max_cycles` hit.
+That dotted arrow (peer review → write code) is the self-healing fix-loop: when
+the reviewer flags `must_fix` items, the executor re-writes and the test + review
+steps run again — until the task is approved or it hits `max_cycles`.
 
 ### The 5 steps in plain language
 
@@ -120,17 +119,16 @@ once across all slices at the end.
 
 ### Roles
 
-**Three LLM roles**, independently configured in `.claude/workflow/models.yaml`:
+**Three LLM roles**, each configured independently in `.claude/workflow/models.yaml`:
 
 | Role | What it does | Examples |
 |---|---|---|
-| **Planner** | Drafts and revises plans; reads PRD, prior findings, repo inventory | gpt-5, claude-opus, gemini-pro |
-| **Reviewer** (plan + impl) | Audits plans and code; can block with must-fix items | claude-opus, mimo, gpt-4o |
-| **Executor** | Writes code via strict tool-use protocol; cannot violate file scope | mimo, codex, claude-haiku |
+| **Planner** | Reads your spec and repo, then drafts the plan; revises when review pushes back | gpt-5, claude-opus, gemini-pro |
+| **Reviewer** (plan + code) | Audits the plan and the code; can block with must-fix items | claude-opus, mimo, gpt-4o |
+| **Executor** | Writes the code — and can only touch the files the task allows | mimo, codex, claude-haiku |
 
-Mix providers: cheap planner + premium reviewer + local executor is a
-common setup. Multi-slice PRDs (`## Slice 1:` … `## Slice 2:` markers)
-auto-iterate slice-by-slice with resume support.
+Mix providers freely — a cheap planner, a premium reviewer, and a local executor
+is a common setup.
 
 Full internal flow — every stage, every safety mechanism's code
 location — see [docs/PIPELINE_DEEP_DIVE.md](docs/PIPELINE_DEEP_DIVE.md).

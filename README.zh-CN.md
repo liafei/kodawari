@@ -67,17 +67,17 @@ wall-clock 上限、advisory gate）调好给 production 用，要微调改
 
 ```mermaid
 flowchart LR
-    PRD([📄 PRD.md]) --> TIER[Stage 0-1<br/>复杂度 tier<br/>+ slice 探测]
-    TIER --> PLAN[Stage 2<br/>planner ↔ reviewer<br/>多轮互审]
-    PLAN --> GRAPH[Stage 3-4<br/>架构方案 + scaffold<br/>+ TASK_GRAPH]
-    GRAPH --> D[DESIGN]
-    D --> I[IMPLEMENT]
-    I --> V[VERIFY<br/>真跑 pytest]
-    V --> R[RULES_GATE<br/>代码 redline]
-    R --> RV[PEER_REVIEW<br/>impl_reviewer]
-    RV -.must_fix.-> I
-    RV --> BUNDLE[Stage 6-7<br/>review bundle<br/>+ release gate]
-    BUNDLE -->|kodawari decide| SHIP([🚀 Ship])
+    PRD([📄 你的 spec]) --> TIER[评估规模<br/>+ 切成 slice]
+    TIER --> PLAN[规划 ↔ 审查<br/>直到方案站得住]
+    PLAN --> GRAPH[设计 + 脚手架<br/>+ 任务清单]
+    GRAPH --> D[取下一个 task]
+    D --> I[写代码]
+    I --> V[跑测试<br/>真跑 pytest]
+    V --> R[质量门禁]
+    R --> RV[peer review]
+    RV -.must fix.-> I
+    RV --> BUNDLE[打包<br/>等你拍板]
+    BUNDLE -->|你来决定| SHIP([🚀 上线])
 
     style PRD fill:#e8f4f8,stroke:#5c8aa0
     style SHIP fill:#d4f4dd,stroke:#3a8050
@@ -85,8 +85,8 @@ flowchart LR
     style RV fill:#fff4d6,stroke:#c89432
 ```
 
-PEER_REVIEW 回 IMPLEMENT 的虚线箭头是**自愈 fix-loop**：reviewer 标 `must_fix`
-时，executor 重新实现、verify + review 重跑。直到 approved 或撞 `max_cycles`。
+那条虚线（peer review → 写代码）是**自愈 fix-loop**：reviewer 标 `must_fix` 时，
+executor 重写，测试 + 审查再跑一遍——直到 task 通过或撞 `max_cycles`。
 
 ### 平实说一遍这 5 步
 
@@ -111,16 +111,15 @@ reviewer 审这份方案，有 must_fix 就打回去改，两边来回直到方�
 
 ### 角色配置
 
-**三个 LLM 角色**，独立配置在 `.claude/workflow/models.yaml`：
+**三个 LLM 角色**，各自独立配置在 `.claude/workflow/models.yaml`：
 
 | 角色 | 职责 | 示例 |
 |---|---|---|
-| **Planner** | 起草和修改 plan；读 PRD / 上轮 reviewer findings / repo inventory | gpt-5、claude-opus、gemini-pro |
-| **Reviewer**（plan + impl） | 审计 plan 和代码；可以用 must-fix 卡住 | claude-opus、mimo、gpt-4o |
-| **Executor** | 通过严格 tool-use 协议写代码；不能越过文件 scope | mimo、codex、claude-haiku |
+| **Planner** | 读你的 spec 和仓库，起草计划；被 review 打回就改 | gpt-5、claude-opus、gemini-pro |
+| **Reviewer**（计划 + 代码） | 审计计划和代码；可以用 must-fix 卡住 | claude-opus、mimo、gpt-4o |
+| **Executor** | 写代码——而且只能动 task 允许改的文件 | mimo、codex、claude-haiku |
 
-可以混搭：便宜 planner + 高端 reviewer + 本地 executor 是常见组合。多 slice
-PRD（`## Slice 1:` … `## Slice 2:` 标记）自动逐 slice 跑，支持 resume。
+可以随意混搭——便宜 planner + 高端 reviewer + 本地 executor 是常见组合。
 
 完整内部流程——每个 stage、每个安全机制对应的代码位置——见
 [docs/PIPELINE_DEEP_DIVE.zh-CN.md](docs/PIPELINE_DEEP_DIVE.zh-CN.md)。

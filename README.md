@@ -91,32 +91,6 @@ That dotted arrow (peer review → write code) is the self-healing fix-loop: whe
 the reviewer flags `must_fix` items, the executor re-writes and the test + review
 steps run again — until the task is approved or it hits `max_cycles`.
 
-### The 5 steps in plain language
-
-**1. Read & split.** If the spec is marked into `## Slice 1:`, `## Slice 2:` …,
-kodawari ships the slices in order; otherwise it treats the whole spec as one
-unit.
-
-**2. Plan.** The planner drafts the implementation — which files to change, which
-tests to write, the data contract. The reviewer audits that plan and can send it
-back with must-fix issues. They loop until the plan holds up.
-
-**3. Break into tasks.** The approved plan becomes 5–7 small tasks, each touching
-a tight group of files, with dependencies recorded so they run in the right
-order.
-
-**4. Build, test, review — per task.** For each task: the executor writes the
-code, `pytest` actually runs, the code-quality gate actually runs, and the
-reviewer audits the result. Anything flagged must-fix sends the task back to be
-re-done and re-checked. Approved → on to the next task.
-
-**5. Stop for your call.** Once every task passes, kodawari bundles the changes
-and stops — nothing ships on its own. Run `kodawari decide --action accept` to
-ship, or `--action reject` to halt.
-
-For multi-slice specs, **steps 2–4 run once per slice**; step 5 runs
-once across all slices at the end.
-
 ### Roles
 
 **Three LLM roles**, each configured independently in `.claude/workflow/models.yaml`:

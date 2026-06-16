@@ -88,27 +88,6 @@ flowchart LR
 那条虚线（peer review → 写代码）是**自愈 fix-loop**：reviewer 标 `must_fix` 时，
 executor 重写，测试 + 审查再跑一遍——直到 task 通过或撞 `max_cycles`。
 
-### 平实说一遍这 5 步
-
-**1. 读取 + 切片。** spec 里有 `## Slice 1:`、`## Slice 2:` … 标记 → 按顺序逐个
-交付；没有就当一个整体。
-
-**2. 规划。** planner 起草实现方案——要改哪些文件、写什么测试、数据契约。
-reviewer 审这份方案，有 must_fix 就打回去改，两边来回直到方案站得住。
-
-**3. 拆成 task。** 通过的方案被拆成 5–7 个小 task，每个只动一组聚焦的文件，并记
-录依赖关系，好按正确顺序跑。
-
-**4. 每个 task：写代码、跑测试、过审。** 每个 task：executor 写代码 → `pytest`
-真跑 → 代码质量门禁真跑 → reviewer 审结果。被标 must_fix 就打回重做重审。通过
-→ 下一个 task。
-
-**5. 停下来等你拍板。** 所有 task 都过了，kodawari 把改动打包，然后停住——不会自
-己上线。你跑 `kodawari decide --action accept` 上线，或 `--action reject` 停。
-
-多 slice spec 的话，**步骤 2–4 每个 slice 跑一遍**，步骤 5 在所有 slice 完
-成后跑一次。
-
 ### 角色配置
 
 **三个 LLM 角色**，各自独立配置在 `.claude/workflow/models.yaml`：

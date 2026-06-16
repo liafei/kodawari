@@ -67,29 +67,14 @@ generated entirely by the autopilot).
 
 ## 🗺️ How it works
 
-```mermaid
-flowchart LR
-    PRD([📄 your spec]) --> TIER[size it up<br/>+ split into slices]
-    TIER --> PLAN[plan ↔ review<br/>until it holds up]
-    PLAN --> GRAPH[design + scaffold<br/>+ task list]
-    GRAPH --> D[pick next task]
-    D --> I[write code]
-    I --> V[run tests<br/>real pytest]
-    V --> R[quality gate]
-    R --> RV[peer review]
-    RV -.must fix.-> I
-    RV --> BUNDLE[bundle for<br/>your sign-off]
-    BUNDLE -->|you decide| SHIP([🚀 ship])
+![kodawari engine architecture](docs/assets/architecture.zh-CN.png)
 
-    style PRD fill:#e8f4f8,stroke:#5c8aa0
-    style SHIP fill:#d4f4dd,stroke:#3a8050
-    style V fill:#fff4d6,stroke:#c89432
-    style RV fill:#fff4d6,stroke:#c89432
-```
-
-That dotted arrow (peer review → write code) is the self-healing fix-loop: when
-the reviewer flags `must_fix` items, the executor re-writes and the test + review
-steps run again — until the task is approved or it hits `max_cycles`.
+Left to right: **inputs** (PRD, repo inventory, context) → **planner** → the
+**core loop** where planner, reviewer, and executor pass the work around → the
+**execution & evidence** layer (real tests, rules gate, review bundle, verify
+report) → **delivery** (Status: PASS / BLOCKED / AWAITING_DECISION, release
+gate). The loop is self-healing: `must_fix` items send the task back to be
+re-written and re-checked, until it's approved or hits `max_cycles`.
 
 ### Roles
 

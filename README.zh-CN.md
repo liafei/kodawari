@@ -65,28 +65,13 @@ wall-clock 上限、advisory gate）调好给 production 用，要微调改
 
 ## 🗺️ 工作原理
 
-```mermaid
-flowchart LR
-    PRD([📄 你的 spec]) --> TIER[评估规模<br/>+ 切成 slice]
-    TIER --> PLAN[规划 ↔ 审查<br/>直到方案站得住]
-    PLAN --> GRAPH[设计 + 脚手架<br/>+ 任务清单]
-    GRAPH --> D[取下一个 task]
-    D --> I[写代码]
-    I --> V[跑测试<br/>真跑 pytest]
-    V --> R[质量门禁]
-    R --> RV[peer review]
-    RV -.must fix.-> I
-    RV --> BUNDLE[打包<br/>等你拍板]
-    BUNDLE -->|你来决定| SHIP([🚀 上线])
+![kodawari engine 架构图](docs/assets/architecture.zh-CN.png)
 
-    style PRD fill:#e8f4f8,stroke:#5c8aa0
-    style SHIP fill:#d4f4dd,stroke:#3a8050
-    style V fill:#fff4d6,stroke:#c89432
-    style RV fill:#fff4d6,stroke:#c89432
-```
-
-那条虚线（peer review → 写代码）是**自愈 fix-loop**：reviewer 标 `must_fix` 时，
-executor 重写，测试 + 审查再跑一遍——直到 task 通过或撞 `max_cycles`。
+从左到右：**输入层**（PRD / 仓库盘点 / 上下文）→ **规划层 Planner** → **核心团队**
+（planner ↔ reviewer ↔ executor 互相传递工作）→ **执行与证据层**（真实测试、规则
+门禁、review bundle、verify report）→ **交付与结果层**（Status：PASS / BLOCKED /
+AWAITING_DECISION、release gate）。核心循环自愈：`must_fix` 会把 task 打回重写、
+重审，直到通过或撞 `max_cycles`。
 
 ### 角色配置
 
